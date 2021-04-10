@@ -1,0 +1,25 @@
+{
+  "name": "yii2-queue-manager-client",
+  "version": "1.0.0",
+  "description": "Yii2 Queue manager client",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "rollup ./src/main.js --file ./build/bundle.js --format es --watch",
+    "build": "rollup ./src/main.js --file ./build/bundle.js --format es",
+    "help": "rollup --help"
+  },
+  "author": "somov.nn@gmail.com",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/somov/yii2-queue-manager-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/somov/yii2-queue-manager-client/issues"
+  },
+  "homepage": "https://github.com/somov/yii2-queue-manager-client#readme",
+  "devDependencies": {
+    "rollup": "^2.45.1"
+  }
+}
