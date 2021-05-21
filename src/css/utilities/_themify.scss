@@ -1,0 +1,50 @@
+@import "../utilities/map";
+
+//noinspection SassScssResolvedByNameOnly
+@mixin themify($section, $behavior : false ) {
+
+  @each $theme, $map in $themes {
+    $themeItem: $qmcp +"-theme-"+$theme !global;
+    $theme-map: () !global;
+
+    @each $key, $value in map_deep-get($map, $section) {
+      $theme-map: map-merge($theme-map, ($key: $value)) !global;
+    }
+
+    @if ($behavior == false) {
+      .#{$themeItem} & {
+        @content;
+      }
+    } @else if type_of($behavior == "list") and length($behavior) == 2 {
+      $type: nth($behavior, 1);
+      $selector: nth($behavior, 2);
+
+      @if ($type == 'unify') {
+        @at-root .#{$themeItem}#{$selector} {
+          @content;
+        }
+      } @else if ($type == 'prepend') {
+        @at-root #{$selector} .#{$themeItem} & {
+          @content;
+        }
+      } @else if ($type == 'replace') {
+        @at-root #{$selector} {
+          @content;
+        }
+      } @else if ($type == 'skip') {
+         @content;
+      } @else {
+        @error "Uncnowm themify behavor type:  " + $type
+      }
+    } @else {
+      @error "Uncnowm themify behavor:  " + $behavior
+    }
+
+    $theme-map: null !global;
+    $themeItem: null !global;
+  }
+}
+
+@function themed($key...) {
+  @return map-deep-get($theme-map, $key);
+}

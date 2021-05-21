@@ -1,0 +1,28 @@
+
+
+.#{$qmcp}-wrapper {
+
+  display: inline-block;
+  width: 100%;
+
+  .#{$qmcp}-empty-wrapper {
+    text-align: center;
+    padding: 1em;
+
+    span.#{$qmcp}-empty-text {
+      font-weight: bold;
+      padding: 0.5em;
+    }
+  }
+
+  > .#{$qmcp}-title {
+    padding-left: 1em;
+    margin-bottom: 0.5em;
+  }
+
+  > .#{$qmcp}-tasks {
+    transition: height 2s ease-in-out;
+  }
+
+}
+

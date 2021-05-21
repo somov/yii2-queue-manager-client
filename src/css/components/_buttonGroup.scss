@@ -1,0 +1,39 @@
+
+.#{$qmcp}-button-group {
+
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+
+  > .#{$qmcp}-button:not(:first-child):not(:last-child){
+    border-radius: unset;
+  }
+
+  > .#{$qmcp}-button:first-child {
+    border-top-right-radius: unset;
+    border-bottom-right-radius: unset;
+  }
+
+  > .#{$qmcp}-button:last-child {
+    border-top-left-radius: unset;
+    border-bottom-left-radius: unset;
+  }
+
+  &.#{$qmcp}-arrange .#{$qmcp}-button:not(:first-child) {
+      padding-left: 0;
+      margin-left: -4em;
+  }
+
+  &.#{$qmcp}-arrange .#{$qmcp}-button:active, &.#{$qmcp}-arrange .#{$qmcp}-button:hover, &.#{$qmcp}-arrange > .#{$qmcp}-selected  {
+    z-index: 2;
+    padding-left: unset;
+  }
+
+  &.#{$qmcp}-scaled .#{$qmcp}-button:active, &.#{$qmcp}-scaled .#{$qmcp}-button:hover, &.#{$qmcp}-scaled > .#{$qmcp}-selected {
+    transform: scale(1.2);
+  }
+
+}

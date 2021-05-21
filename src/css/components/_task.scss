@@ -1,0 +1,71 @@
+@import "../utilities/card";
+@import "../utilities/breakpoints";
+
+$taskItemPadding: 0.5em;
+$taskItemMargin: 0.8em;
+
+.#{$qmcp}-task-item  {
+
+
+  padding: $taskItemPadding;
+  margin: $taskItemMargin;
+  position: relative;
+
+  display: flex;
+  flex-direction: row-reverse;
+
+  &.#{$qmcp}-task-item-right {
+    flex-direction: row
+  }
+
+  justify-content: left;
+  align-items: center;
+  flex-wrap: nowrap;
+
+  > .#{$qmcp}-detail {
+    flex-grow: 1;
+
+    ul {
+      list-style: square outside;
+      margin-left: 1em;
+    }
+  }
+
+  .#{$qmcp}-status-wrapper {
+    flex-basis: 4em;
+    margin-right: 0.5em;
+
+    > .#{$qmcp}-status {
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      position: relative;
+
+
+      .#{$qmcp}-status-text {
+        font-weight: bold;
+        font-size: 0.8em;
+      }
+
+      .#{$qmcp}-icon-t, .#{$qmcp}-status-text {
+        flex-basis: 8em;
+        text-align: center;
+      }
+
+      &.#{$qmcp}-status {
+        cursor: pointer;
+
+        &:hover .#{$qmcp}-status-text {
+          text-decoration: underline
+        }
+      }
+    }
+  }
+
+  .#{$qmcp}-title {
+    font-weight: bold;
+  }
+
+}

@@ -1,0 +1,91 @@
+@import "../variables/progress";
+@import "../utilities/sizable";
+@import "../utilities/linear-gradient";
+@import "../utilities/breakpoints";
+
+.#{$qmcp}-progress, .#{$qmcp}-progress-item, .#{$qmcp}-progress-label, .#{$qmcp}-progress-items {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+.#{$qmcp}-progress {
+  position: relative;
+  height: $progressDefaultHeight;
+  border-radius: 5px;
+  background-color: $progressColor;
+
+  @include resizable($progressSizes, $progressDefaultHeight) {
+    @include breakpointTabletDown() {
+      height: floor($itemHeight / 2);
+    }
+    @if ($itemSize == 'mini') {
+      .#{$qmcp}-progress-label {
+        visibility: hidden;
+      }
+    }
+  }
+
+}
+
+.#{$qmcp}-progress-items {
+  display: flex;
+  flex-direction: row;
+  float: left;
+  justify-content: left;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+}
+
+.#{$qmcp}-progress-item {
+  flex-basis: 100px;
+  flex-grow: 1;
+}
+
+.#{$qmcp}-progress-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.#{$qmcp}-progress-bar {
+  float: left;
+  width: 0;
+  font-size: 12px;
+  line-height: inherit;
+  text-align: center;
+  transition-property: width, background-color;
+  transition: 0.6s ease;
+  height: 100%;
+  background-color: $progressBarColor;
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+    background-color: $progressColor;
+  }
+
+  .#{$qmcp}-progress-items :first-child > & {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+  }
+
+  .#{$qmcp}-progress-items :last-child > & {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+
+}
+

@@ -1,0 +1,269 @@
+@import "../utilities/sizable";
+@import "../variables/icon-t";
+
+.#{$qmcp}-icon-t {
+
+  *, ::after, ::before {
+    box-sizing: border-box
+  }
+
+  display: inline-block;
+  width: 3em;
+  height: 3em;
+  color: #9e9e9e;
+  overflow: hidden;
+  transform: translateZ(0);
+  transition: all 0.5s ease;
+  font-size: 1em;
+
+
+  & > span {
+    display: block;
+    position: relative;
+    width: 2em;
+    height: 2em;
+    transition: transform 0.5s ease;
+    overflow: hidden;
+    margin: 0.5em;
+  }
+
+  & > span > span {
+    display: block;
+    background-color: #9e9e9e;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2em;
+    height: 2em;
+    transition: all 0.5s ease;
+    border: 1px solid transparent;
+
+  }
+
+
+  &.none > span > span {
+    background-color: transparent;
+  }
+
+  &.stop > span {
+    transform: scale(0.7, 0.7);
+    border-radius: 0.6em;
+
+  }
+
+  &.play > span {
+    transform: translate(1em, 0) scale(1.6, 1);
+
+    & span {
+      transform: rotate(-45deg) translate(-1em, -1em) scale(1, 1);
+    }
+  }
+
+  &.pause > span {
+    & span {
+      transform: scale(0.4, 1) translate(-1.6em, 0);
+    }
+    & span.s3 {
+      transform: scale(0.4, 1) translate(1.6em, 0);
+    }
+  }
+
+  &.close > span {
+    transform: rotate(45deg);
+
+    & span {
+      transform: scale(1, 0.2);
+    }
+    & span.s3 {
+      transform: scale(0.2, 1);
+    }
+  }
+
+  &.plus > span {
+    & span {
+      transform: scale(1, 0.2);
+
+      &.s3 {
+        transform: scale(0.2, 1);
+      }
+    }
+  }
+
+  &.heart > span {
+    & span {
+      width: 1em;
+      height: 1.7em;
+      top: 0.2em;
+      left: 1em;
+      transform-origin: 0 100%;
+      transform: rotate(-45deg);
+      border-radius: 1em 1em 0 0;
+
+      &.s3 {
+        transform-origin: 100% 100%;
+        left: 0;
+        transform: rotate(45deg);
+      }
+    }
+  }
+
+
+  &.clock > span span {
+
+    &.s1, &.s2 {
+      width: 1.1em;
+      height: 1.1em;
+      border-top-left-radius: 2em;
+    }
+
+    &.s3 {
+      transform: rotate(-45deg);
+      border-radius: 2em;
+      border: 0.2em solid #9e9e9e;
+      background-color: transparent;
+    }
+  }
+
+  &.checked > span span {
+    width: 1em;
+    height: 0.4em;
+    transform-origin: 100% 100%;
+    transform: translate(-0.3em, 1.4em) rotate(45deg);
+
+    &.s3 {
+      width: 1.8em;
+      transform-origin: 0 100%;
+      transform: translate(0.7em, 1.4em) rotate(-45deg);
+    }
+  }
+
+  &.left-arrow > span span {
+    width: 1.8em;
+    height: 0.4em;
+    transform: translate(0.2em, 0.8em);
+
+    &.s2 {
+      transform-origin: 0 100%;
+      width: 1.4em;
+      transform: translate(0, 0.6em) rotate(45deg);
+    }
+
+    &.s3 {
+      transform-origin: 0 0;
+      width: 1.4em;
+      transform: translate(0, 1em) rotate(-45deg);
+    }
+  }
+
+
+  &.top-arrow > span span {
+    width: 0.4em;
+    height: 1.8em;
+    transform: translate(0.8em, 0.2em);
+
+    &.s2 {
+      transform-origin: 0 0;
+      height: 1.4em;
+      transform: translate(1em, 0) rotate(45deg);
+    }
+
+    &.s3 {
+      transform-origin: 100% 0;
+      height: 1.4em;
+      transform: translate(0.6em, 0) rotate(-45deg);
+    }
+  }
+
+  &.right-arrow > span span {
+    width: 1.8em;
+    height: 0.4em;
+    transform: translate(0, 0.8em);
+
+    &.s2 {
+      transform-origin: 100% 0;
+      width: 1.4em;
+      transform: translate(0.6em, 1em) rotate(45deg);
+    }
+
+    &.s3 {
+      transform-origin: 100% 100%;
+      width: 1.4em;
+      transform: translate(0.6em, 0.6em) rotate(-45deg);
+    }
+  }
+
+  &.bottom-arrow > span span {
+    width: 0.4em;
+    height: 1.8em;
+    transform: translate(0.8em, 0);
+
+    &.s2 {
+      transform-origin: 100% 100%;
+      height: 1.4em;
+      transform: translate(0.6em, 0.6em) rotate(45deg);
+    }
+
+    &.s3 {
+      transform-origin: 0 100%;
+      height: 1.4em;
+      transform: translate(1em, 0.6em) rotate(-45deg);
+    }
+  }
+
+
+  &.minus > span span {
+    transform: scale(1, 0.2);
+  }
+
+  %menuIcon {
+    transform: scale(1, 0.2) translate(0, -3em);
+
+    &.s2 {
+      transform: scale(1, 0.2) translate(0, 0);
+    }
+
+    &.s3 {
+      transform: scale(1, 0.2) translate(0, 3em);
+    }
+  }
+
+  &.menu > span span {
+    @extend %menuIcon;
+  }
+
+  &.warning > span {
+    & span {
+      transform: scale(0.2, 1);
+      height: 1.4em;
+
+      &.s3 {
+        height: 0.4em;
+        bottom: 0;
+        top: unset;
+      }
+    }
+  }
+
+
+  %iconMore {
+
+    transform: scale(0.2, 0.2) translate(-3em, 0);
+    border-radius: 2em;
+
+    &.s2 {
+      transform: scale(0.2, 0.2) translate(0, 0);
+    }
+
+    &.s3 {
+      transform: scale(0.2, 0.2) translate(3em, 0);
+    }
+
+  }
+
+  &.more > span span {
+    @extend %iconMore;
+  }
+
+  @include resizable($iconSizes, 1, 0em, font-size, 1, floor);
+
+}

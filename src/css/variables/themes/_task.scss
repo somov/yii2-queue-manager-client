@@ -1,0 +1,37 @@
+@import '../../utilities/map';
+@import "../../utilities/color";
+
+
+$local: (
+        /*default: (
+                taskItem: (
+                        boldColor: black,
+                        card: (
+                                level: 1,
+                                border: 1px solid black,
+                                sides: (top, right),
+                        )
+                )
+        )*/
+);
+
+$themes: r-map-merge($themes, $local);
+
+@each $name, $map in $colors {
+  $themes: r-map-merge($themes, (
+          $name: (
+                  taskItem: (
+                          color: map-get($map, "300"),
+                          boldColor: map-get($map, "600"),
+                          card: (
+                                  level: 1,
+                                  border: 1px solid map-get($map, "100"),
+                                  color: (map-get($map, "600"), map-get($map, "200")),
+                                  animation: 0.7s ease-in-out forwards,
+                                  animationLevel: 2
+                          )
+                  )
+          )
+  ));
+}
+

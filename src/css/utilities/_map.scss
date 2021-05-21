@@ -1,0 +1,63 @@
+// https://github.com/pentzzsolt/sass-recursive-map-merge/issues/12
+
+// Add small helper function
+@function convert-empty-list-to-map($source) {
+  @if ( type-of($source) == list and length($source) == 0 ) {
+    @return map-remove((x:x), x);
+  }
+  @return $source;
+};
+
+// Updated function
+@function r-map-merge($source1, $source2 ) {
+  @if ( type-of($source1) == map or ( type-of($source1) == list and length($source1) == 0) ) and
+      ( type-of($source2) == map or ( type-of($source2) == list and length($source2) == 0) ) {
+
+    // Check both maps and convert to [map] when empty
+    $map1: convert-empty-list-to-map($source1);
+    $map2: convert-empty-list-to-map($source2);
+
+    $result: $map1;
+
+    @each $key, $value in $map2 {
+      // Check both childs and convert to map when empty
+      $map1-child: convert-empty-list-to-map(map-get($map1, $key));
+      $map2-child: convert-empty-list-to-map($value);
+
+      @if ( type-of($map1-child) == map and type-of($map2-child) == map ) {
+        $result: map-merge($result, ($key: r-map-merge($map1-child, $map2-child)));
+      }
+      @else {
+        $result: map-merge($result, ($key: $value));
+      }
+    }
+
+    @return $result;
+  }
+  @else {
+    @warn "recursive-map-merge() expects it\'s parameters to be map types!";
+    @return null;
+  }
+}
+
+/// Map deep get
+/// @access public
+/// @param {Map} $map - Map
+/// @param {Arglist|list} $keys - Key chain
+/// @return {*} - Desired value
+
+@function map-deep-get($map, $keys...) {
+
+  @if length($keys) == 1 and (type_of(nth($keys, 1)) == list or type_of(nth($keys, 1) == arglist )) {
+    $keys: nth($keys, 1);
+  }
+
+  @each $key in $keys {
+    @if map-has-key($map, $key) {
+      $map: map-get($map, $key);
+    } @else {
+      @return null;
+    }
+  }
+  @return $map;
+}

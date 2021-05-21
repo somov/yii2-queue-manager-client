@@ -1,0 +1,102 @@
+@import "../variables/themes/task";
+@import "../utilities/themify";
+@import "../utilities/unify_parent";
+
+
+@include themify(taskItem, (skip, '')) {
+  %#{$themeItem}IconDisabled {
+    .#{$qmcp}-icon-t > span > span {
+      background-color: themed(color);
+    }
+  }
+}
+
+
+.#{$qmcp}-task-item {
+
+  .#{$qmcp}-title {
+    @include themify(taskItem) {
+      color: themed(boldColor);
+    }
+  }
+
+  @include themify(taskItem) {
+
+    $card: themed(card);
+
+    @if (type_of($card)=='map') {
+      $color: map_get($card, color);
+      $level: map_get($card, animationLevel);
+
+      @include card(map_get($card, level), map_get($card, border), $color, map_get($card, sides));
+
+      $animation: map_get($card, animation);
+
+      @if ($animation) {
+        $animationName: paper-card-#{$themeItem};
+
+        animation: #{$animationName}_in $animation;
+
+        &:hover {
+          animation: #{$animationName}_out $animation;
+        }
+
+        $max: map_get($card, animationLevel);
+        @keyframes #{$animationName}_out {
+          @for $i from map_get($card, level) + 1 through $max {
+            $percent: floor($i / $max * 100) ;
+            #{$percent}% {
+              @include paper-shadow($i, $color);
+            }
+          }
+        }
+
+        @keyframes #{$animationName}_in {
+          0% {
+            @include paper-shadow($max, $color);
+          }
+          100% {
+            @include paper-shadow(0, $color);
+          }
+        }
+      }
+    }
+  }
+
+  .#{$qmcp}-icon-t {
+    & > span > span {
+      @include themify(taskItem) {
+        background-color: themed(boldColor)
+      }
+    }
+
+    &.clock > span span.s3 {
+      @include themify(taskItem) {
+        background-color: transparent;
+        border-color: themed(boldColor)
+      }
+    }
+  }
+
+  button.#{$qmcp}-button {
+
+    @include unify-parent(':disabled') {
+      @include themify(taskItem) {
+        @extend %#{$themeItem}IconDisabled;
+      }
+    }
+
+    @include unify-parent('[disabled]') {
+      @include themify(taskItem) {
+        @extend %#{$themeItem}IconDisabled;
+      }
+    }
+
+    @include unify-parent('.disabled') {
+      @include themify(taskItem) {
+        @extend %#{$themeItem}IconDisabled;
+      }
+    }
+  }
+
+}

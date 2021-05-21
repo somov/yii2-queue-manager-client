@@ -1,0 +1,25 @@
+@import '../../utilities/map';
+@import "../../utilities/color";
+
+
+$local: (
+        default: (
+                icon: (
+                        color: #55acee,
+                        hoverColor: #4a78af
+                )
+        )
+);
+
+$themes: r-map-merge($themes, $local);
+
+@each $name, $map in $colors {
+  $themes: r-map-merge($themes, (
+          $name: (
+                  icon: (
+                          color: map-get($map, "200"),
+                          hoverColor: map-get($map, "500")
+                  ),
+          )
+  ));
+}
