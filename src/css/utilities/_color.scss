@@ -1,11 +1,13 @@
+@use "sass:math";
+
 @function colorMap($color, $variations) {
 
   $map: ();
 
   $maxVar: 36;
-  $mid: $variations / 2;
+  $mid: $variations * 0.5;
   $dist: $mid - 1;
-  $step: $maxVar / $dist;
+  $step: math.div($maxVar, $dist);
 
   // lighten and darken
   @for $i from 1 through $dist {
@@ -20,7 +22,7 @@
 
   // middle eg 500
   $map: map-merge($map, (50: lighten($color, 38.7)));
-  $map: map-merge($map, (#{$variations/2*100}: $color));
+  $map: map-merge($map, (#{$variations*0.5*100}: $color));
 
   @return $map;
 }

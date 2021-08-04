@@ -173,6 +173,37 @@ var manager = (function (document, window$1) {
   }
 
   /**
+   * @file obj.js
+   * @module obj
+   */
+
+  /**
+   * @callback obj:EachCallback
+   *
+   * @param {Mixed} value
+   *        The current key for the object that is being iterated over.
+   *
+   * @param {string} key
+   *        The current key-value for object that is being iterated over
+   */
+
+  /**
+   * @callback obj:ReduceCallback
+   *
+   * @param {Mixed} accum
+   *        The value that is accumulating over the reduce loop.
+   *
+   * @param {Mixed} value
+   *        The current key for the object that is being iterated over.
+   *
+   * @param {string} key
+   *        The current key-value for object that is being iterated over
+   *
+   * @return {Mixed}
+   *         The new accumulated value.
+   */
+  var toString = Object.prototype.toString;
+  /**
    * Get the keys of an Object
    *
    * @param {Object}
@@ -217,6 +248,17 @@ var manager = (function (document, window$1) {
 
   function isObject$1(value) {
     return !!value && typeof value === 'object';
+  }
+  /**
+   * Returns whether an object appears to be a "plain" object - that is, a
+   * direct instance of `Object`.
+   *
+   * @param  {Object} value
+   * @return {boolean}
+   */
+
+  function isPlain(value) {
+    return isObject$1(value) && toString.call(value) === '[object Object]' && value.constructor === Object;
   }
 
   /**
@@ -1332,375 +1374,6 @@ var manager = (function (document, window$1) {
     return extend.apply(void 0, [target].concat(sources));
   }
 
-  function _classStaticPrivateFieldSpecGet$1(receiver, classConstructor, descriptor) { _classCheckPrivateStaticAccess$4(receiver, classConstructor); _classCheckPrivateStaticFieldDescriptor$1(descriptor, "get"); return _classApplyDescriptorGet$1(receiver, descriptor); }
-
-  function _classCheckPrivateStaticFieldDescriptor$1(descriptor, action) { if (descriptor === undefined) { throw new TypeError("attempted to " + action + " private static field before its declaration"); } }
-
-  function _classApplyDescriptorGet$1(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
-
-  function _classStaticPrivateMethodGet$3(receiver, classConstructor, method) { _classCheckPrivateStaticAccess$4(receiver, classConstructor); return method; }
-
-  function _classCheckPrivateStaticAccess$4(receiver, classConstructor) { if (receiver !== classConstructor) { throw new TypeError("Private static access of wrong provenance"); } }
-
-  function _classPrivateMethodGet$6(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
-  var EMPTY_MESSAGE = '__EMPTY__';
-  var Defaults$4 = {
-    method: 'post',
-    delayTime: 1000
-  };
-  /**
-   * Resolve task information
-   */
-
-  var _managers = /*#__PURE__*/new WeakMap();
-
-  var _options$3 = /*#__PURE__*/new WeakMap();
-
-  var _numberRequests = /*#__PURE__*/new WeakMap();
-
-  var _request = /*#__PURE__*/new WeakSet();
-
-  var _createRequest = /*#__PURE__*/new WeakSet();
-
-  var _getManagers = /*#__PURE__*/new WeakSet();
-
-  var Resolver = /*#__PURE__*/function () {
-    /**
-     * @type {Resolver[]}
-     * @private
-     */
-
-    /**
-     * @type {Manager[]}
-     */
-
-    /**
-     * @type {Manager[]}
-     */
-
-    /**
-     * @type {{}}
-     */
-
-    /**
-     *
-     * @type {number}
-     */
-
-    /**
-     * @param {Object} options
-     */
-    function Resolver(options) {
-      _getManagers.add(this);
-
-      _createRequest.add(this);
-
-      _request.add(this);
-
-      _managers.set(this, {
-        writable: true,
-        value: []
-      });
-
-      _options$3.set(this, {
-        writable: true,
-        value: void 0
-      });
-
-      _numberRequests.set(this, {
-        writable: true,
-        value: -1
-      });
-
-      _classPrivateFieldSet(this, _options$3, extend({}, Defaults$4, options));
-    }
-    /**
-     * @param {function} onStart
-     * @param {function} onEnd
-     */
-
-
-    var _proto = Resolver.prototype;
-
-    _proto.resolve = function resolve(onStart, onEnd) {
-      var _this = this;
-
-      if (this.isRunning === false) {
-        var managers = _classPrivateMethodGet$6(this, _getManagers, _getManagers2).call(this);
-
-        _classPrivateFieldSet(this, _numberRequests, 0);
-
-        managers.forEach(function (manager) {
-          return onStart(manager);
-        });
-
-        _classPrivateMethodGet$6(this, _request, _request2).call(this, 0)["catch"](function (error) {
-          if (error !== EMPTY_MESSAGE) {
-            console.error(error);
-          }
-        }).then(function () {
-          var number = _classPrivateFieldGet(_this, _numberRequests);
-
-          managers.forEach(function (manager) {
-            return onEnd(manager, number);
-          });
-
-          _classPrivateFieldSet(_this, _numberRequests, -1);
-
-          return number;
-        });
-      }
-    }
-    /**
-     * @return {Promise}
-     */
-    ;
-
-    /**
-     *
-     * @param id
-     * @return {TaskAbstract|boolean}
-     */
-    _proto.findTask = function findTask(id) {
-      var task = this.tasks.find(function (task) {
-        return task.id === id;
-      });
-      return task ? task : false;
-    }
-    /**
-     * @return {Object}
-     */
-    ;
-
-    /**
-     * @param {Manager} manager
-     * @return {Resolver}
-     */
-    Resolver.factory = function factory(manager) {
-      var options = manager.options.resolver,
-          hash = crc32.str(options.url),
-          cache = _classStaticPrivateFieldSpecGet$1(Resolver, Resolver, _cache),
-          commonManagers = _classStaticPrivateFieldSpecGet$1(Resolver, Resolver, _commonManagers);
-
-      var resolver = cache[hash] = cache[hash] instanceof Resolver ? cache[hash] : new Resolver(options),
-          managers = _classPrivateMethodGet$6(resolver, _getManagers, _getManagers2).call(resolver);
-
-      if (managers.indexOf(manager) === -1) {
-        managers.push(manager);
-
-        if (manager.options.common) {
-          commonManagers.push(manager);
-        }
-
-        manager.ownerElement.addEventListener(Manager.Events.destroy, function (event) {
-          var index = managers.indexOf(event.manager);
-
-          if (index > -1) {
-            commonManagers.forEach(function (manager) {
-              manager.getTasks().filter(function (value) {
-                return value.initiatorManager === managers[index];
-              }).forEach(function (task) {
-                manager.removeTask(task);
-              });
-            });
-            managers.splice(index, 1);
-          }
-
-          index = commonManagers.findIndex(function (value) {
-            return value === event.manager;
-          });
-
-          if (index > -1) {
-            commonManagers.splice(index, 1);
-          }
-        });
-      }
-
-      return resolver;
-    };
-
-    _createClass(Resolver, [{
-      key: "tasks",
-      get:
-      /**
-       * @return {TaskAbstract[]}
-       */
-      function get() {
-        var tasks = [];
-
-        _classPrivateFieldGet(this, _managers).forEach(function (manager) {
-          manager.getTasks().forEach(function (task) {
-            if (task.common === false) {
-              tasks.push(task);
-            }
-          });
-        });
-
-        return tasks;
-      }
-      /**
-       * @return {Number[]}
-       */
-
-    }, {
-      key: "tasksId",
-      get: function get() {
-        return this.tasks.map(function (task) {
-          return task.id;
-        }).filter(function (value, index, array) {
-          return array.indexOf(value === index);
-        });
-      }
-    }, {
-      key: "options",
-      get: function get() {
-        return _classPrivateFieldGet(this, _options$3);
-      }
-      /**
-       * @return {boolean}
-       */
-
-    }, {
-      key: "isRunning",
-      get: function get() {
-        return _classPrivateFieldGet(this, _numberRequests) > -1;
-      }
-      /**
-       * @return {Manager[]}
-       */
-
-    }]);
-
-    return Resolver;
-  }();
-
-  function _request2(timeOut) {
-    var _this2 = this;
-
-    if (timeOut === void 0) {
-      timeOut = this.options.delayTime;
-    }
-
-    return _classPrivateMethodGet$6(this, _createRequest, _createRequest2).call(this, timeOut).then(function (response) {
-      if (response.ok === false) {
-        throw Error(response.status + " - " + response.statusText + "' ");
-      }
-
-      return response.json().then(function (raw) {
-        if (raw.length > 0) {
-          raw.forEach(function (item) {
-            var task = _this2.findTask(item.id);
-
-            if (task) {
-              // noinspection JSAccessibilityCheck
-              task.manager._updateTask(task, item);
-            }
-          });
-
-          _classStaticPrivateMethodGet$3(Resolver, Resolver, _updateCommonManagers).call(Resolver, raw, _this2);
-        }
-
-        return _classPrivateMethodGet$6(_this2, _request, _request2).call(_this2);
-      });
-    });
-  }
-
-  function _updateCommonManagers(response, resolver) {
-    _classStaticPrivateFieldSpecGet$1(Resolver, Resolver, _commonManagers).forEach(function (manager) {
-      response.forEach(function (item) {
-        var task = manager.findTask(item.id);
-
-        if (task === null) {
-          var _resolver$tasks$find;
-
-          item.common = true;
-          item.title = ''; // manual triggering update
-
-          manager.addTasks([item], false);
-          task = manager.findTask(item.id);
-          task.initiatorManager = (_resolver$tasks$find = resolver.tasks.find(function (value) {
-            return value.id === item.id;
-          })) == null ? void 0 : _resolver$tasks$find.manager;
-        }
-
-        if (task.common) {
-          manager._updateTask(task, item);
-        }
-      });
-    });
-  }
-
-  function _createRequest2(timeOut) {
-    var _this3 = this;
-
-    return new Promise(function (resolve, reject) {
-      var tasks = _this3.tasksId;
-
-      if (tasks.length === 0) {
-        reject(EMPTY_MESSAGE);
-      } else {
-        setTimeout(function () {
-          return resolve(tasks);
-        }, timeOut);
-      }
-    }).then(function (tasks) {
-      _classPrivateFieldSet(_this3, _numberRequests, +_classPrivateFieldGet(_this3, _numberRequests) + 1);
-
-      return fetch(_this3.options.url, extend({}, _this3.options, {
-        method: 'post',
-        headers: {
-          "Content-type": "application/x-www-form-urlencoded"
-        },
-        body: encodeURI(tasks.map(function (item) {
-          return "t[]=" + item;
-        }).join('&'))
-      }));
-    });
-  }
-
-  function _getManagers2(common) {
-    if (common === void 0) {
-      common = false;
-    }
-
-    if (common === false) {
-      return _classPrivateFieldGet(this, _managers);
-    }
-
-    return _classPrivateFieldGet(this, _managers).filter(function (manager) {
-      return manager.options.common === true;
-    });
-  }
-
-  var _cache = {
-    writable: true,
-    value: []
-  };
-  var _commonManagers = {
-    writable: true,
-    value: []
-  };
-
-  /**
-   *
-   */
-
-  var Event = {
-    ready: 'qmc:manager:ready',
-    destroy: 'qmc:manager:destroy',
-    statusChange: 'qmc:manager:statusChange',
-    fetchStart: 'qmc:resolver:start',
-    fetchEnd: 'qmc:resolver:end'
-  };
-
-  Event.toString = function () {
-    var events = [];
-    each(this, function (event) {
-      events.push(event);
-    });
-    return events.join(' ');
-  };
-
   var StatusesList = {
     INIT: -1,
     WAIT: 0,
@@ -1721,129 +1394,6 @@ var manager = (function (document, window$1) {
     return set.indexOf(status) > -1;
   };
 
-  function _getPrototypeOf(o) {
-    _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
-      return o.__proto__ || Object.getPrototypeOf(o);
-    };
-    return _getPrototypeOf(o);
-  }
-
-  function _isNativeFunction(fn) {
-    return Function.toString.call(fn).indexOf("[native code]") !== -1;
-  }
-
-  function _isNativeReflectConstruct() {
-    if (typeof Reflect === "undefined" || !Reflect.construct) return false;
-    if (Reflect.construct.sham) return false;
-    if (typeof Proxy === "function") return true;
-
-    try {
-      Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {}));
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function _construct(Parent, args, Class) {
-    if (_isNativeReflectConstruct()) {
-      _construct = Reflect.construct;
-    } else {
-      _construct = function _construct(Parent, args, Class) {
-        var a = [null];
-        a.push.apply(a, args);
-        var Constructor = Function.bind.apply(Parent, a);
-        var instance = new Constructor();
-        if (Class) _setPrototypeOf(instance, Class.prototype);
-        return instance;
-      };
-    }
-
-    return _construct.apply(null, arguments);
-  }
-
-  function _wrapNativeSuper(Class) {
-    var _cache = typeof Map === "function" ? new Map() : undefined;
-
-    _wrapNativeSuper = function _wrapNativeSuper(Class) {
-      if (Class === null || !_isNativeFunction(Class)) return Class;
-
-      if (typeof Class !== "function") {
-        throw new TypeError("Super expression must either be null or a function");
-      }
-
-      if (typeof _cache !== "undefined") {
-        if (_cache.has(Class)) return _cache.get(Class);
-
-        _cache.set(Class, Wrapper);
-      }
-
-      function Wrapper() {
-        return _construct(Class, arguments, _getPrototypeOf(this).constructor);
-      }
-
-      Wrapper.prototype = Object.create(Class.prototype, {
-        constructor: {
-          value: Wrapper,
-          enumerable: false,
-          writable: true,
-          configurable: true
-        }
-      });
-      return _setPrototypeOf(Wrapper, Class);
-    };
-
-    return _wrapNativeSuper(Class);
-  }
-
-  var _manager$1 = /*#__PURE__*/new WeakMap();
-
-  /**
-   * Manager Event
-   */
-  var ManagerEvent = /*#__PURE__*/function (_CustomEvent) {
-    _inheritsLoose(ManagerEvent, _CustomEvent);
-
-    /**
-     *
-     * @type {Manager}
-     */
-
-    /**
-     *
-     * @param {Manager} manager
-     * @param {string} type
-     * @param {Object} props
-     */
-    function ManagerEvent(manager, type, props) {
-      var _this;
-
-      _this = _CustomEvent.call(this, type, props) || this;
-
-      _manager$1.set(_assertThisInitialized(_this), {
-        writable: true,
-        value: null
-      });
-
-      _classPrivateFieldSet(_assertThisInitialized(_this), _manager$1, manager);
-
-      return _this;
-    }
-    /**
-     * @return {Manager}
-     */
-
-
-    _createClass(ManagerEvent, [{
-      key: "manager",
-      get: function get() {
-        return _classPrivateFieldGet(this, _manager$1);
-      }
-    }]);
-
-    return ManagerEvent;
-  }( /*#__PURE__*/_wrapNativeSuper(CustomEvent));
-
   function _defineProperty(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
@@ -1859,20 +1409,20 @@ var manager = (function (document, window$1) {
     return obj;
   }
 
-  function _classStaticPrivateFieldSpecGet(receiver, classConstructor, descriptor) { _classCheckPrivateStaticAccess$3(receiver, classConstructor); _classCheckPrivateStaticFieldDescriptor(descriptor, "get"); return _classApplyDescriptorGet(receiver, descriptor); }
+  function _classStaticPrivateFieldSpecGet$1(receiver, classConstructor, descriptor) { _classCheckPrivateStaticAccess$4(receiver, classConstructor); _classCheckPrivateStaticFieldDescriptor$1(descriptor, "get"); return _classApplyDescriptorGet$1(receiver, descriptor); }
 
-  function _classCheckPrivateStaticFieldDescriptor(descriptor, action) { if (descriptor === undefined) { throw new TypeError("attempted to " + action + " private static field before its declaration"); } }
+  function _classCheckPrivateStaticFieldDescriptor$1(descriptor, action) { if (descriptor === undefined) { throw new TypeError("attempted to " + action + " private static field before its declaration"); } }
 
-  function _classCheckPrivateStaticAccess$3(receiver, classConstructor) { if (receiver !== classConstructor) { throw new TypeError("Private static access of wrong provenance"); } }
+  function _classCheckPrivateStaticAccess$4(receiver, classConstructor) { if (receiver !== classConstructor) { throw new TypeError("Private static access of wrong provenance"); } }
 
-  function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+  function _classApplyDescriptorGet$1(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
 
-  function _classPrivateMethodGet$5(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
+  function _classPrivateMethodGet$6(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
   /**
    *@interface
    */
 
-  var _manager = /*#__PURE__*/new WeakMap();
+  var _manager$1 = /*#__PURE__*/new WeakMap();
 
   var _element$4 = /*#__PURE__*/new WeakMap();
 
@@ -1928,7 +1478,7 @@ var manager = (function (document, window$1) {
 
       _render.add(_assertThisInitialized(_this));
 
-      _manager.set(_assertThisInitialized(_this), {
+      _manager$1.set(_assertThisInitialized(_this), {
         writable: true,
         value: null
       });
@@ -1954,7 +1504,7 @@ var manager = (function (document, window$1) {
 
       _this.id = parseInt(id);
 
-      _classPrivateFieldSet(_assertThisInitialized(_this), _manager, manager);
+      _classPrivateFieldSet(_assertThisInitialized(_this), _manager$1, manager);
 
       return _this;
     }
@@ -1987,7 +1537,7 @@ var manager = (function (document, window$1) {
     ;
 
     _proto.cssClassSwitch = function cssClassSwitch() {
-      var element = _classPrivateMethodGet$5(this, _render, _render2).call(this);
+      var element = _classPrivateMethodGet$6(this, _render, _render2).call(this);
 
       var cssClass, searchClass;
 
@@ -2001,7 +1551,7 @@ var manager = (function (document, window$1) {
         }
       }
 
-      cssClass = _classStaticPrivateFieldSpecGet(TaskAbstract, TaskAbstract, _cssList).call(TaskAbstract)[this.status];
+      cssClass = _classStaticPrivateFieldSpecGet$1(TaskAbstract, TaskAbstract, _cssList).call(TaskAbstract)[this.status];
       searchClass = TaskAbstract.getClassName('status');
       switchClass(element, cssClass, searchClass);
     }
@@ -2017,7 +1567,7 @@ var manager = (function (document, window$1) {
         elements = null;
       }
 
-      _classPrivateMethodGet$5(this, _render, _render2).call(this);
+      _classPrivateMethodGet$6(this, _render, _render2).call(this);
 
       if (elements) {
         this._refreshElements(elements, response);
@@ -2147,7 +1697,7 @@ var manager = (function (document, window$1) {
     _createClass(TaskAbstract, [{
       key: "manager",
       get: function get() {
-        return _classPrivateFieldGet(this, _manager);
+        return _classPrivateFieldGet(this, _manager$1);
       }
       /**
        * @return {Element}
@@ -2219,6 +1769,512 @@ var manager = (function (document, window$1) {
       return this._cssList;
     }
   };
+
+  function _classStaticPrivateFieldSpecGet(receiver, classConstructor, descriptor) { _classCheckPrivateStaticAccess$3(receiver, classConstructor); _classCheckPrivateStaticFieldDescriptor(descriptor, "get"); return _classApplyDescriptorGet(receiver, descriptor); }
+
+  function _classCheckPrivateStaticFieldDescriptor(descriptor, action) { if (descriptor === undefined) { throw new TypeError("attempted to " + action + " private static field before its declaration"); } }
+
+  function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+
+  function _classStaticPrivateMethodGet$3(receiver, classConstructor, method) { _classCheckPrivateStaticAccess$3(receiver, classConstructor); return method; }
+
+  function _classCheckPrivateStaticAccess$3(receiver, classConstructor) { if (receiver !== classConstructor) { throw new TypeError("Private static access of wrong provenance"); } }
+
+  function _classPrivateMethodGet$5(receiver, privateSet, fn) { if (!privateSet.has(receiver)) { throw new TypeError("attempted to get private field on non-instance"); } return fn; }
+  var EMPTY_MESSAGE = '__EMPTY__';
+  var Defaults$4 = {
+    method: 'post',
+    delayTime: 1000,
+    params: {}
+  };
+  /**
+   * Resolve task information
+   */
+
+  var _managers = /*#__PURE__*/new WeakMap();
+
+  var _options$3 = /*#__PURE__*/new WeakMap();
+
+  var _numberRequests = /*#__PURE__*/new WeakMap();
+
+  var _request = /*#__PURE__*/new WeakSet();
+
+  var _createRequest = /*#__PURE__*/new WeakSet();
+
+  var _getManagers = /*#__PURE__*/new WeakSet();
+
+  var Resolver = /*#__PURE__*/function () {
+    /**
+     * @type {Resolver[]}
+     * @private
+     */
+
+    /**
+     * @type {Manager[]}
+     */
+
+    /**
+     * @type {Manager[]}
+     */
+
+    /**
+     * @type {{}}
+     */
+
+    /**
+     *
+     * @type {number}
+     */
+
+    /**
+     * @param {Object} options
+     */
+    function Resolver(options) {
+      _getManagers.add(this);
+
+      _createRequest.add(this);
+
+      _request.add(this);
+
+      _managers.set(this, {
+        writable: true,
+        value: []
+      });
+
+      _options$3.set(this, {
+        writable: true,
+        value: void 0
+      });
+
+      _numberRequests.set(this, {
+        writable: true,
+        value: -1
+      });
+
+      var opt = _classPrivateFieldSet(this, _options$3, extend({}, Defaults$4, options));
+
+      if (opt.params && isPlain(opt.params)) {
+        opt.params = Object.entries(opt.params).map(function (_ref) {
+          var key = _ref[0],
+              value = _ref[1];
+          return key + "=" + value;
+        });
+      }
+    }
+    /**
+     * @param {function} onStart
+     * @param {function} onEnd
+     */
+
+
+    var _proto = Resolver.prototype;
+
+    _proto.resolve = function resolve(onStart, onEnd) {
+      var _this = this;
+
+      if (this.isRunning === false) {
+        var managers = _classPrivateMethodGet$5(this, _getManagers, _getManagers2).call(this);
+
+        _classPrivateFieldSet(this, _numberRequests, 0);
+
+        managers.forEach(function (manager) {
+          return onStart(manager);
+        });
+
+        _classPrivateMethodGet$5(this, _request, _request2).call(this, 0)["catch"](function (error) {
+          if (error !== EMPTY_MESSAGE) {
+            console.error(error);
+          }
+        }).then(function () {
+          var number = _classPrivateFieldGet(_this, _numberRequests);
+
+          managers.forEach(function (manager) {
+            return onEnd(manager, number);
+          });
+
+          _classPrivateFieldSet(_this, _numberRequests, -1);
+
+          return number;
+        });
+      }
+    }
+    /**
+     * @return {Promise}
+     */
+    ;
+
+    /**
+     *
+     * @param id
+     * @return {TaskAbstract|boolean}
+     */
+    _proto.findTasks = function findTasks(id) {
+      return this.tasks.filter(function (task) {
+        return task.id === id;
+      });
+    }
+    /**
+     * @return {Object}
+     */
+    ;
+
+    /**
+     * @param {Manager} manager
+     * @return {Resolver}
+     */
+    Resolver.factory = function factory(manager) {
+      var options = manager.options.resolver,
+          hash = crc32.str(options.url),
+          cache = _classStaticPrivateFieldSpecGet(Resolver, Resolver, _cache),
+          commonManagers = _classStaticPrivateFieldSpecGet(Resolver, Resolver, _commonManagers);
+
+      var resolver = cache[hash] = cache[hash] instanceof Resolver ? cache[hash] : new Resolver(options),
+          managers = _classPrivateMethodGet$5(resolver, _getManagers, _getManagers2).call(resolver);
+
+      if (managers.indexOf(manager) === -1) {
+        managers.push(manager);
+
+        if (manager.options.common) {
+          commonManagers.push(manager);
+        }
+
+        manager.ownerElement.addEventListener(Manager.Events.destroy, function (event) {
+          var index = managers.indexOf(event.manager);
+
+          if (index > -1) {
+            commonManagers.forEach(function (manager) {
+              manager.getTasks().filter(function (value) {
+                return value.initiatorManager === managers[index];
+              }).forEach(function (task) {
+                manager.removeTask(task);
+              });
+            });
+            managers.splice(index, 1);
+          }
+
+          index = commonManagers.findIndex(function (value) {
+            return value === event.manager;
+          });
+
+          if (index > -1) {
+            commonManagers.splice(index, 1);
+          }
+        });
+      }
+
+      return resolver;
+    };
+
+    _createClass(Resolver, [{
+      key: "tasks",
+      get:
+      /**
+       * @return {TaskAbstract[]}
+       */
+      function get() {
+        var tasks = [];
+
+        _classPrivateFieldGet(this, _managers).forEach(function (manager) {
+          manager.getTasks().forEach(function (task) {
+            if (task.common === false) {
+              tasks.push(task);
+            }
+          });
+        });
+
+        return tasks;
+      }
+      /**
+       * @return {Number[]}
+       */
+
+    }, {
+      key: "tasksId",
+      get: function get() {
+        return this.tasks.map(function (task) {
+          return task.id;
+        }).filter(function (value, index, array) {
+          return array.indexOf(value === index);
+        });
+      }
+    }, {
+      key: "options",
+      get: function get() {
+        return _classPrivateFieldGet(this, _options$3);
+      }
+      /**
+       * @return {boolean}
+       */
+
+    }, {
+      key: "isRunning",
+      get: function get() {
+        return _classPrivateFieldGet(this, _numberRequests) > -1;
+      }
+      /**
+       * @return {Manager[]}
+       */
+
+    }]);
+
+    return Resolver;
+  }();
+
+  function _request2(timeOut) {
+    var _this2 = this;
+
+    if (timeOut === void 0) {
+      timeOut = this.options.delayTime;
+    }
+
+    return _classPrivateMethodGet$5(this, _createRequest, _createRequest2).call(this, timeOut).then(function (response) {
+      if (response.ok === false) {
+        throw Error(response.status + " - " + response.statusText + "' ");
+      }
+
+      return response.json().then(function (raw) {
+        if (raw.length > 0) {
+          raw.forEach(function (item) {
+            _this2.findTasks(item.id).forEach(function (task) {
+              task.manager._updateTask(task, item);
+            });
+          });
+
+          _classStaticPrivateMethodGet$3(Resolver, Resolver, _updateCommonManagers).call(Resolver, raw, _this2);
+        }
+
+        return _classPrivateMethodGet$5(_this2, _request, _request2).call(_this2);
+      });
+    });
+  }
+
+  function _updateCommonManagers(response, resolver) {
+    _classStaticPrivateFieldSpecGet(Resolver, Resolver, _commonManagers).forEach(function (manager) {
+      response.forEach(function (item) {
+        var task = manager.findTask(item.id);
+
+        if (task === null && StatusesList.is(StatusesList.SET_COMPLETE, item.status) === false) {
+          var _resolver$tasks$find;
+
+          item.common = true;
+          manager.addTasks([item.id], false);
+          task = manager.findTask(item.id);
+
+          manager._updateTask(task, item);
+
+          task.initiatorManager = (_resolver$tasks$find = resolver.tasks.find(function (value) {
+            return value.id === item.id;
+          })) == null ? void 0 : _resolver$tasks$find.manager;
+        }
+
+        if (task instanceof TaskAbstract && task.common) {
+          manager._updateTask(task, item);
+        } //}
+
+      });
+    });
+  }
+
+  function _createRequest2(timeOut) {
+    var _this3 = this;
+
+    return new Promise(function (resolve, reject) {
+      var tasks = _this3.tasksId;
+
+      if (tasks.length === 0) {
+        reject(EMPTY_MESSAGE);
+      } else {
+        setTimeout(function () {
+          return resolve(tasks);
+        }, timeOut);
+      }
+    }).then(function (tasks) {
+      _classPrivateFieldSet(_this3, _numberRequests, +_classPrivateFieldGet(_this3, _numberRequests) + 1);
+
+      var body = tasks.map(function (item) {
+        return "t[]=" + item;
+      }),
+          params = _this3.options.params;
+
+      if (Array.isArray(params) && params.length > 0) {
+        body = body.concat(params);
+      }
+
+      return fetch(_this3.options.url, extend({}, _this3.options, {
+        method: 'post',
+        headers: {
+          "Content-type": "application/x-www-form-urlencoded"
+        },
+        body: encodeURI(body.join('&'))
+      }));
+    });
+  }
+
+  function _getManagers2(common) {
+    if (common === void 0) {
+      common = false;
+    }
+
+    if (common === false) {
+      return _classPrivateFieldGet(this, _managers);
+    }
+
+    return _classPrivateFieldGet(this, _managers).filter(function (manager) {
+      return manager.options.common === true;
+    });
+  }
+
+  var _cache = {
+    writable: true,
+    value: []
+  };
+  var _commonManagers = {
+    writable: true,
+    value: []
+  };
+
+  /**
+   *
+   */
+
+  var Event = {
+    ready: 'qmc:manager:ready',
+    destroy: 'qmc:manager:destroy',
+    statusChange: 'qmc:manager:statusChange',
+    fetchStart: 'qmc:resolver:start',
+    fetchEnd: 'qmc:resolver:end'
+  };
+
+  Event.toString = function () {
+    var events = [];
+    each(this, function (event) {
+      events.push(event);
+    });
+    return events.join(' ');
+  };
+
+  function _getPrototypeOf(o) {
+    _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+      return o.__proto__ || Object.getPrototypeOf(o);
+    };
+    return _getPrototypeOf(o);
+  }
+
+  function _isNativeFunction(fn) {
+    return Function.toString.call(fn).indexOf("[native code]") !== -1;
+  }
+
+  function _isNativeReflectConstruct() {
+    if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+    if (Reflect.construct.sham) return false;
+    if (typeof Proxy === "function") return true;
+
+    try {
+      Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {}));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function _construct(Parent, args, Class) {
+    if (_isNativeReflectConstruct()) {
+      _construct = Reflect.construct;
+    } else {
+      _construct = function _construct(Parent, args, Class) {
+        var a = [null];
+        a.push.apply(a, args);
+        var Constructor = Function.bind.apply(Parent, a);
+        var instance = new Constructor();
+        if (Class) _setPrototypeOf(instance, Class.prototype);
+        return instance;
+      };
+    }
+
+    return _construct.apply(null, arguments);
+  }
+
+  function _wrapNativeSuper(Class) {
+    var _cache = typeof Map === "function" ? new Map() : undefined;
+
+    _wrapNativeSuper = function _wrapNativeSuper(Class) {
+      if (Class === null || !_isNativeFunction(Class)) return Class;
+
+      if (typeof Class !== "function") {
+        throw new TypeError("Super expression must either be null or a function");
+      }
+
+      if (typeof _cache !== "undefined") {
+        if (_cache.has(Class)) return _cache.get(Class);
+
+        _cache.set(Class, Wrapper);
+      }
+
+      function Wrapper() {
+        return _construct(Class, arguments, _getPrototypeOf(this).constructor);
+      }
+
+      Wrapper.prototype = Object.create(Class.prototype, {
+        constructor: {
+          value: Wrapper,
+          enumerable: false,
+          writable: true,
+          configurable: true
+        }
+      });
+      return _setPrototypeOf(Wrapper, Class);
+    };
+
+    return _wrapNativeSuper(Class);
+  }
+
+  var _manager = /*#__PURE__*/new WeakMap();
+
+  /**
+   * Manager Event
+   */
+  var ManagerEvent = /*#__PURE__*/function (_CustomEvent) {
+    _inheritsLoose(ManagerEvent, _CustomEvent);
+
+    /**
+     *
+     * @type {Manager}
+     */
+
+    /**
+     *
+     * @param {Manager} manager
+     * @param {string} type
+     * @param {Object} props
+     */
+    function ManagerEvent(manager, type, props) {
+      var _this;
+
+      _this = _CustomEvent.call(this, type, props) || this;
+
+      _manager.set(_assertThisInitialized(_this), {
+        writable: true,
+        value: null
+      });
+
+      _classPrivateFieldSet(_assertThisInitialized(_this), _manager, manager);
+
+      return _this;
+    }
+    /**
+     * @return {Manager}
+     */
+
+
+    _createClass(ManagerEvent, [{
+      key: "manager",
+      get: function get() {
+        return _classPrivateFieldGet(this, _manager);
+      }
+    }]);
+
+    return ManagerEvent;
+  }( /*#__PURE__*/_wrapNativeSuper(CustomEvent));
 
   /**
    * @file guid.js
@@ -3490,13 +3546,6 @@ var manager = (function (document, window$1) {
           }
         });
       });
-
-      _classPrivateFieldSet(_assertThisInitialized(_this), _bGroup, new ButtonsGroup({
-        buttons: actions,
-        arrange: false,
-        scaled: true
-      }));
-
       return _this;
     }
     /**
@@ -3515,7 +3564,17 @@ var manager = (function (document, window$1) {
 
       els.push(_classPrivateFieldGet(this, _icon).render());
       els.push(_classPrivateFieldGet(this, _text));
-      els.push(_classPrivateFieldGet(this, _bGroup).render());
+
+      if (this.map.actions.length > 0) {
+        _classPrivateFieldSet(this, _bGroup, new ButtonsGroup({
+          buttons: this.map.actions,
+          arrange: false,
+          scaled: true
+        }));
+
+        els.push(_classPrivateFieldGet(this, _bGroup).render());
+      }
+
       return els;
     }
     /**
@@ -3528,25 +3587,29 @@ var manager = (function (document, window$1) {
       _classPrivateFieldGet(this, _text).innerHTML = _classPrivateFieldGet(this, _task).statusText;
       _classPrivateFieldGet(this, _icon).icon = this.map.icons[status];
 
-      _classPrivateFieldGet(this, _bGroup).buttons.forEach(function (button) {
-        var _button$options;
+      var buttonGroup = _classPrivateFieldGet(this, _bGroup);
 
-        var enabledWith = (_button$options = button.options) == null ? void 0 : _button$options.enabledWithStatus;
+      if (buttonGroup) {
+        buttonGroup.buttons.forEach(function (button) {
+          var _button$options;
 
-        if (typeof enabledWith === "function") {
-          enabledWith = enabledWith.call(button, status);
-        }
+          var enabledWith = (_button$options = button.options) == null ? void 0 : _button$options.enabledWithStatus;
 
-        if (Array.isArray(enabledWith)) {
-          if (button.options.enabledWithStatus.length === 0) {
-            return;
+          if (typeof enabledWith === "function") {
+            enabledWith = enabledWith.call(button, status);
           }
 
-          button.disabled = button.options.enabledWithStatus.indexOf(status) === -1;
-        } else if (typeof enabledWith === "boolean") {
-          button.disabled = enabledWith;
-        }
-      });
+          if (Array.isArray(enabledWith)) {
+            if (button.options.enabledWithStatus.length === 0) {
+              return;
+            }
+
+            button.disabled = button.options.enabledWithStatus.indexOf(status) === -1;
+          } else if (typeof enabledWith === "boolean") {
+            button.disabled = enabledWith;
+          }
+        });
+      }
     };
 
     return TaskStatus;
@@ -4146,9 +4209,11 @@ var manager = (function (document, window$1) {
         _classPrivateMethodGet(this, _toggleEmptyText, _toggleEmptyText2).call(this, 'hide').then(function () {
           if (resolve) {
             _this2.resolver.resolve(function (manager) {
-              manager.trigger(Event.fetchStart, {
-                bubbles: true
-              });
+              if (manager.getTasks().length > 0) {
+                manager.trigger(Event.fetchStart, {
+                  bubbles: true
+                });
+              }
             }, function (manager, numberRequests) {
               manager.trigger(Event.fetchEnd, {
                 bubbles: true
@@ -4371,6 +4436,8 @@ var manager = (function (document, window$1) {
       if (visible && type === 'hide' || visible === false && type === 'show') {
         return animateEl(el, this.options[type + 'Animation']);
       }
+
+      el.style.display = type === 'show' ? 'block' : 'none';
     }
 
     return Promise.resolve(el);

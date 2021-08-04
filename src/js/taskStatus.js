@@ -58,8 +58,6 @@ export default class TaskStatus extends UIComponent {
         actions.forEach(function (item) {
            extend(item, {data: {task: task}})
         });
-
-        this.#bGroup = new ButtonsGroup({buttons: actions, arrange: false, scaled: true});
     }
 
     /**
@@ -74,7 +72,12 @@ export default class TaskStatus extends UIComponent {
         }
         els.push(this.#icon.render());
         els.push(this.#text);
-        els.push(this.#bGroup.render());
+
+        if (this.map.actions.length > 0) {
+            this.#bGroup = new ButtonsGroup({buttons: this.map.actions, arrange: false, scaled: true});
+            els.push(this.#bGroup.render());
+        }
+
 
         return els;
 
@@ -89,23 +92,24 @@ export default class TaskStatus extends UIComponent {
 
         this.#icon.icon = this.map.icons[status];
 
-        this.#bGroup.buttons.forEach((button) => {
-            let enabledWith = button.options?.enabledWithStatus;
-            if (typeof enabledWith === "function") {
-                enabledWith = enabledWith.call(button, status);
-            }
-            if (Array.isArray(enabledWith)) {
-                if (button.options.enabledWithStatus.length === 0) {
-                    return;
+        const buttonGroup = this.#bGroup;
+
+        if (buttonGroup) {
+            buttonGroup.buttons.forEach((button) => {
+                let enabledWith = button.options?.enabledWithStatus;
+                if (typeof enabledWith === "function") {
+                    enabledWith = enabledWith.call(button, status);
                 }
-                button.disabled = button.options.enabledWithStatus.indexOf(status) === -1;
-            } else if (typeof enabledWith === "boolean") {
-                button.disabled = enabledWith;
-            }
-        })
+                if (Array.isArray(enabledWith)) {
+                    if (button.options.enabledWithStatus.length === 0) {
+                        return;
+                    }
+                    button.disabled = button.options.enabledWithStatus.indexOf(status) === -1;
+                } else if (typeof enabledWith === "boolean") {
+                    button.disabled = enabledWith;
+                }
+            })
+        }
     }
-
-
-
 
 }

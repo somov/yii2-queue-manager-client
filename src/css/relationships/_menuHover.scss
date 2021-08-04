@@ -1,7 +1,10 @@
+@import '../utilities/themify';
+@import '../variables/themes/icon-t';
 
 .#{$qmcp}-task-item .#{$qmcp}-status:hover > .#{$qmcp}-icon-t > span {
   transform: unset;
 }
+
 
 .#{$qmcp}-task-item .#{$qmcp}-status:hover > .#{$qmcp}-icon-t > span span {
 
@@ -20,14 +23,15 @@
     height: inherit;
     width: inherit;
     transform-origin: inherit;
+    @include themify(icon) {
+      background-color: themed(color)
+    }
   }
 
   @extend %iconMore;
-/*
-  @include themify(icon) {
-    background-color: themed(hoverColor)
-  }*/
+
 }
+
 
 
 .#{$qmcp}-task-item {

@@ -33,8 +33,6 @@ $.fn.queueManager = function (method) {
 
         };
 
-
-
     if (manager instanceof Manager && typeof manager[method] === 'function') {
         return manager[method].apply(manager, Array.prototype.slice.call(arguments, 1));
     } else if (methods[method]) {
@@ -50,6 +48,9 @@ $.fn.queueManager = function (method) {
 
 $.fn.queueManager.Manager = Manager;
 
+$('document').ready(function () {
+    $('.qmc-queue-manager[data-manager]').queueManager();
+});
 
 
 

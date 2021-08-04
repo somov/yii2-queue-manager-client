@@ -1,12 +1,16 @@
 import {str as CRC32} from 'crc-32';
 import Manager from './manager';
 import extend from './utils/extend';
+import * as Obj from './utils/obj';
+import StatusesList from "./statusesList";
+import TaskAbstract from "./taskAbstract";
 
 const EMPTY_MESSAGE = '__EMPTY__';
 
 const Defaults = {
     method: 'post',
-    delayTime: 1000
+    delayTime: 1000,
+    params: {}
 };
 
 /**
@@ -45,7 +49,11 @@ export default class Resolver {
      * @param {Object} options
      */
     constructor(options) {
-        this.#options = extend({}, Defaults, options);
+        const opt =  this.#options = extend({}, Defaults, options);
+        if (opt.params && Obj.isPlain(opt.params)) {
+            opt.params = Object.entries(opt.params).map(([key, value]) => `${key}=${value}`);
+        }
+
     }
 
     /**
@@ -83,11 +91,10 @@ export default class Resolver {
             return response.json().then((raw) => {
                 if (raw.length > 0) {
                     raw.forEach((item) => {
-                        const task = this.findTask(item.id);
-                        if (task) {
-                            // noinspection JSAccessibilityCheck
-                            task.manager._updateTask(task, item)
-                        }
+                        this.findTasks(item.id).forEach((task) => {
+                                task.manager._updateTask(task, item)
+                            }
+                        );
                     });
                     Resolver.#updateCommonManagers(raw, this);
                 }
@@ -104,17 +111,18 @@ export default class Resolver {
     static #updateCommonManagers(response, resolver) {
         Resolver.#commonManagers.forEach(manager => {
             response.forEach(item => {
-                let task = manager.findTask(item.id);
-                if (task === null) {
-                    item.common = true;
-                    manager.addTasks([item.id], false);
-                    task = manager.findTask(item.id);
-                    manager._updateTask(task, item);
-                    task.initiatorManager = resolver.tasks.find(value => value.id === item.id)?.manager;
-                }
-                if (task.common) {
-                    manager._updateTask(task, item);
-                }
+                    let task = manager.findTask(item.id);
+                    if (task === null && StatusesList.is(StatusesList.SET_COMPLETE, item.status) === false ) {
+                        item.common = true;
+                        manager.addTasks([item.id], false);
+                        task = manager.findTask(item.id);
+                        manager._updateTask(task, item);
+                        task.initiatorManager = resolver.tasks.find(value => value.id === item.id)?.manager;
+                    }
+                    if (task instanceof TaskAbstract && task.common) {
+                        manager._updateTask(task, item);
+                    }
+                //}
             })
         })
     }
@@ -133,12 +141,20 @@ export default class Resolver {
             }
         }).then((tasks) => {
             ++this.#numberRequests;
+
+            let body = tasks.map((item) => `t[]=${item}`),
+                params = this.options.params;
+
+            if (Array.isArray(params) && params.length > 0) {
+                body = body.concat(params);
+            }
+
             return fetch(this.options.url, extend({}, this.options, {
                     method: 'post',
                     headers: {
                         "Content-type": "application/x-www-form-urlencoded"
                     },
-                    body: encodeURI(tasks.map((item) => `t[]=${item}`).join('&'))
+                    body: encodeURI(body.join('&'))
                 })
             );
         });
@@ -174,9 +190,8 @@ export default class Resolver {
      * @param id
      * @return {TaskAbstract|boolean}
      */
-    findTask(id) {
-        const task = this.tasks.find((task) => task.id === id);
-        return (task) ? task : false;
+    findTasks(id) {
+        return this.tasks.filter((task) => task.id === id);
     }
 
     /**
