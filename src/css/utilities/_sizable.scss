@@ -1,4 +1,6 @@
 //noinspection CssInvalidAtRule
+@use "sass:math";
+
 @import "strip_unit";
 
 @function decimal-round ($number, $digits: 0, $mode: round) {
@@ -22,11 +24,11 @@
     }
   }
   @if $mode == round {
-    @return round($number * $n) / $n;
+    @return math.div(round($number * $n), $n);
   } @else if $mode == ceil {
-    @return ceil($number * $n) / $n;
+    @return math.div(ceil($number * $n), $n);
   } @else if $mode == floor {
-    @return floor($number * $n) / $n;
+    @return math.div(floor($number * $n), $n);
   } @else {
     @warn '#{ $mode } is undefined keyword.';
     @return $number;
@@ -41,7 +43,7 @@
   @if (type-of($sizes) == 'map') {
     $fromSize: strip-unit($fromSize);
     @each $size, $value in $sizes {
-      $percent: decimal-round($fromSize * ( $value /100 ), $digits, $mode) ;
+      $percent: decimal-round($fromSize * ( $value *0.01 ), $digits, $mode) ;
       $height: $fromSize + $percent + $units;
 
       $itemSize: $size !global;

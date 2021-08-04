@@ -1,3 +1,5 @@
+@use "sass:math";
+
 @import "../variables/themes/task";
 @import "../utilities/themify";
 @import "../utilities/unify_parent";
@@ -44,7 +46,7 @@
         $max: map_get($card, animationLevel);
         @keyframes #{$animationName}_out {
           @for $i from map_get($card, level) + 1 through $max {
-            $percent: floor($i / $max * 100) ;
+            $percent: floor(math.div($i, $max) * 100) ;
             #{$percent}% {
               @include paper-shadow($i, $color);
             }

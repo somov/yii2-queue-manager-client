@@ -229,10 +229,14 @@ class Manager extends UIComponent {
     #toggleEmptyText(type) {
         const el = this.#elements.emptyText,
             visible = Dom.isVisible(el);
+
         if (Dom.isEl(el)) {
             if ((visible && type === 'hide') || (visible === false && type === 'show')) {
                 return animateEl(el, this.options[type + 'Animation'])
             }
+
+            el.style.display = (type === 'show') ? 'block' : 'none';
+
         }
         return Promise.resolve(el);
     }
@@ -248,7 +252,9 @@ class Manager extends UIComponent {
             this.#toggleEmptyText('hide').then(() => {
                 if (resolve) {
                     this.resolver.resolve((manager) => {
-                            manager.trigger(Events.fetchStart, {bubbles: true})
+                            if (manager.getTasks().length > 0) {
+                                manager.trigger(Events.fetchStart, {bubbles: true})
+                            }
                         },
                         (manager, numberRequests) => {
                             manager.trigger(Events.fetchEnd, {bubbles: true}, {requests: numberRequests})

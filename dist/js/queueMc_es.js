@@ -171,6 +171,33 @@ var QueueManager = (function (document, window$1) {
    * @file obj.js
    * @module obj
    */
+
+  /**
+   * @callback obj:EachCallback
+   *
+   * @param {Mixed} value
+   *        The current key for the object that is being iterated over.
+   *
+   * @param {string} key
+   *        The current key-value for object that is being iterated over
+   */
+
+  /**
+   * @callback obj:ReduceCallback
+   *
+   * @param {Mixed} accum
+   *        The value that is accumulating over the reduce loop.
+   *
+   * @param {Mixed} value
+   *        The current key for the object that is being iterated over.
+   *
+   * @param {string} key
+   *        The current key-value for object that is being iterated over
+   *
+   * @return {Mixed}
+   *         The new accumulated value.
+   */
+  const toString = Object.prototype.toString;
   /**
    * Get the keys of an Object
    *
@@ -214,6 +241,17 @@ var QueueManager = (function (document, window$1) {
 
   function isObject$1(value) {
     return !!value && typeof value === 'object';
+  }
+  /**
+   * Returns whether an object appears to be a "plain" object - that is, a
+   * direct instance of `Object`.
+   *
+   * @param  {Object} value
+   * @return {boolean}
+   */
+
+  function isPlain(value) {
+    return isObject$1(value) && toString.call(value) === '[object Object]' && value.constructor === Object;
   }
 
   /**
@@ -1268,321 +1306,6 @@ var QueueManager = (function (document, window$1) {
     return extend(target, ...sources);
   }
 
-  const EMPTY_MESSAGE = '__EMPTY__';
-  const Defaults$4 = {
-    method: 'post',
-    delayTime: 1000
-  };
-  /**
-   * Resolve task information
-   */
-
-  var _managers = /*#__PURE__*/new WeakMap();
-
-  var _options$3 = /*#__PURE__*/new WeakMap();
-
-  var _numberRequests = /*#__PURE__*/new WeakMap();
-
-  var _request = /*#__PURE__*/new WeakSet();
-
-  var _createRequest = /*#__PURE__*/new WeakSet();
-
-  var _getManagers = /*#__PURE__*/new WeakSet();
-
-  class Resolver {
-    /**
-     * @type {Resolver[]}
-     * @private
-     */
-
-    /**
-     * @type {Manager[]}
-     */
-
-    /**
-     * @type {Manager[]}
-     */
-
-    /**
-     * @type {{}}
-     */
-
-    /**
-     *
-     * @type {number}
-     */
-
-    /**
-     * @param {Object} options
-     */
-    constructor(options) {
-      _getManagers.add(this);
-
-      _createRequest.add(this);
-
-      _request.add(this);
-
-      _managers.set(this, {
-        writable: true,
-        value: []
-      });
-
-      _options$3.set(this, {
-        writable: true,
-        value: void 0
-      });
-
-      _numberRequests.set(this, {
-        writable: true,
-        value: -1
-      });
-
-      _classPrivateFieldSet(this, _options$3, extend({}, Defaults$4, options));
-    }
-    /**
-     * @param {function} onStart
-     * @param {function} onEnd
-     */
-
-
-    resolve(onStart, onEnd) {
-      if (this.isRunning === false) {
-        const managers = _classPrivateMethodGet(this, _getManagers, _getManagers2).call(this);
-
-        _classPrivateFieldSet(this, _numberRequests, 0);
-
-        managers.forEach(manager => onStart(manager));
-
-        _classPrivateMethodGet(this, _request, _request2).call(this, 0).catch(function (error) {
-          if (error !== EMPTY_MESSAGE) {
-            console.error(error);
-          }
-        }).then(() => {
-          const number = _classPrivateFieldGet(this, _numberRequests);
-
-          managers.forEach(manager => onEnd(manager, number));
-
-          _classPrivateFieldSet(this, _numberRequests, -1);
-
-          return number;
-        });
-      }
-    }
-    /**
-     * @return {Promise}
-     */
-
-
-    /**
-     * @return {TaskAbstract[]}
-     */
-    get tasks() {
-      let tasks = [];
-
-      _classPrivateFieldGet(this, _managers).forEach(function (manager) {
-        manager.getTasks().forEach(function (task) {
-          if (task.common === false) {
-            tasks.push(task);
-          }
-        });
-      });
-
-      return tasks;
-    }
-    /**
-     * @return {Number[]}
-     */
-
-
-    get tasksId() {
-      return this.tasks.map(task => task.id).filter((value, index, array) => {
-        return array.indexOf(value === index);
-      });
-    }
-    /**
-     *
-     * @param id
-     * @return {TaskAbstract|boolean}
-     */
-
-
-    findTask(id) {
-      const task = this.tasks.find(task => task.id === id);
-      return task ? task : false;
-    }
-    /**
-     * @return {Object}
-     */
-
-
-    get options() {
-      return _classPrivateFieldGet(this, _options$3);
-    }
-    /**
-     * @return {boolean}
-     */
-
-
-    get isRunning() {
-      return _classPrivateFieldGet(this, _numberRequests) > -1;
-    }
-    /**
-     * @return {Manager[]}
-     */
-
-
-    /**
-     * @param {Manager} manager
-     * @return {Resolver}
-     */
-    static factory(manager) {
-      const options = manager.options.resolver,
-            hash = crc32.str(options.url),
-            cache = _classStaticPrivateFieldSpecGet(Resolver, Resolver, _cache),
-            commonManagers = _classStaticPrivateFieldSpecGet(Resolver, Resolver, _commonManagers);
-
-      const resolver = cache[hash] = cache[hash] instanceof Resolver ? cache[hash] : new Resolver(options),
-            managers = _classPrivateMethodGet(resolver, _getManagers, _getManagers2).call(resolver);
-
-      if (managers.indexOf(manager) === -1) {
-        managers.push(manager);
-
-        if (manager.options.common) {
-          commonManagers.push(manager);
-        }
-
-        manager.ownerElement.addEventListener(Manager.Events.destroy, function (event) {
-          let index = managers.indexOf(event.manager);
-
-          if (index > -1) {
-            commonManagers.forEach(function (manager) {
-              manager.getTasks().filter(value => value.initiatorManager === managers[index]).forEach(function (task) {
-                manager.removeTask(task);
-              });
-            });
-            managers.splice(index, 1);
-          }
-
-          index = commonManagers.findIndex(value => value === event.manager);
-
-          if (index > -1) {
-            commonManagers.splice(index, 1);
-          }
-        });
-      }
-
-      return resolver;
-    }
-
-  }
-
-  function _request2(timeOut = this.options.delayTime) {
-    return _classPrivateMethodGet(this, _createRequest, _createRequest2).call(this, timeOut).then(response => {
-      if (response.ok === false) {
-        throw Error(`${response.status} - ${response.statusText}' `);
-      }
-
-      return response.json().then(raw => {
-        if (raw.length > 0) {
-          raw.forEach(item => {
-            const task = this.findTask(item.id);
-
-            if (task) {
-              // noinspection JSAccessibilityCheck
-              task.manager._updateTask(task, item);
-            }
-          });
-
-          _classStaticPrivateMethodGet(Resolver, Resolver, _updateCommonManagers).call(Resolver, raw, this);
-        }
-
-        return _classPrivateMethodGet(this, _request, _request2).call(this);
-      });
-    });
-  }
-
-  function _updateCommonManagers(response, resolver) {
-    _classStaticPrivateFieldSpecGet(Resolver, Resolver, _commonManagers).forEach(manager => {
-      response.forEach(item => {
-        let task = manager.findTask(item.id);
-
-        if (task === null) {
-          item.common = true;
-          item.title = ''; // manual triggering update
-
-          manager.addTasks([item], false);
-          task = manager.findTask(item.id);
-          task.initiatorManager = resolver.tasks.find(value => value.id === item.id)?.manager;
-        }
-
-        if (task.common) {
-          manager._updateTask(task, item);
-        }
-      });
-    });
-  }
-
-  function _createRequest2(timeOut) {
-    return new Promise((resolve, reject) => {
-      const tasks = this.tasksId;
-
-      if (tasks.length === 0) {
-        reject(EMPTY_MESSAGE);
-      } else {
-        setTimeout(() => resolve(tasks), timeOut);
-      }
-    }).then(tasks => {
-      _classPrivateFieldSet(this, _numberRequests, +_classPrivateFieldGet(this, _numberRequests) + 1);
-
-      return fetch(this.options.url, extend({}, this.options, {
-        method: 'post',
-        headers: {
-          "Content-type": "application/x-www-form-urlencoded"
-        },
-        body: encodeURI(tasks.map(item => `t[]=${item}`).join('&'))
-      }));
-    });
-  }
-
-  function _getManagers2(common = false) {
-    if (common === false) {
-      return _classPrivateFieldGet(this, _managers);
-    }
-
-    return _classPrivateFieldGet(this, _managers).filter(function (manager) {
-      return manager.options.common === true;
-    });
-  }
-
-  var _cache = {
-    writable: true,
-    value: []
-  };
-  var _commonManagers = {
-    writable: true,
-    value: []
-  };
-
-  /**
-   *
-   */
-
-  const Event = {
-    ready: 'qmc:manager:ready',
-    destroy: 'qmc:manager:destroy',
-    statusChange: 'qmc:manager:statusChange',
-    fetchStart: 'qmc:resolver:start',
-    fetchEnd: 'qmc:resolver:end'
-  };
-
-  Event.toString = function () {
-    const events = [];
-    each(this, function (event) {
-      events.push(event);
-    });
-    return events.join(' ');
-  };
-
   const StatusesList = {
     INIT: -1,
     WAIT: 0,
@@ -1603,49 +1326,11 @@ var QueueManager = (function (document, window$1) {
     return set.indexOf(status) > -1;
   };
 
-  var _manager$1 = /*#__PURE__*/new WeakMap();
-
-  /**
-   * Manager Event
-   */
-  class ManagerEvent extends CustomEvent {
-    /**
-     *
-     * @type {Manager}
-     */
-
-    /**
-     *
-     * @param {Manager} manager
-     * @param {string} type
-     * @param {Object} props
-     */
-    constructor(manager, type, props) {
-      super(type, props);
-
-      _manager$1.set(this, {
-        writable: true,
-        value: null
-      });
-
-      _classPrivateFieldSet(this, _manager$1, manager);
-    }
-    /**
-     * @return {Manager}
-     */
-
-
-    get manager() {
-      return _classPrivateFieldGet(this, _manager$1);
-    }
-
-  }
-
   /**
    *@interface
    */
 
-  var _manager = /*#__PURE__*/new WeakMap();
+  var _manager$1 = /*#__PURE__*/new WeakMap();
 
   var _element$4 = /*#__PURE__*/new WeakMap();
 
@@ -1697,7 +1382,7 @@ var QueueManager = (function (document, window$1) {
 
       _render.add(this);
 
-      _manager.set(this, {
+      _manager$1.set(this, {
         writable: true,
         value: null
       });
@@ -1723,7 +1408,7 @@ var QueueManager = (function (document, window$1) {
 
       this.id = parseInt(id);
 
-      _classPrivateFieldSet(this, _manager, manager);
+      _classPrivateFieldSet(this, _manager$1, manager);
     }
     /**
      * @private
@@ -1879,7 +1564,7 @@ var QueueManager = (function (document, window$1) {
 
 
     get manager() {
-      return _classPrivateFieldGet(this, _manager);
+      return _classPrivateFieldGet(this, _manager$1);
     }
     /**
      * @return {Element}
@@ -1963,6 +1648,369 @@ var QueueManager = (function (document, window$1) {
       return this._cssList;
     }
   };
+
+  const EMPTY_MESSAGE = '__EMPTY__';
+  const Defaults$4 = {
+    method: 'post',
+    delayTime: 1000,
+    params: {}
+  };
+  /**
+   * Resolve task information
+   */
+
+  var _managers = /*#__PURE__*/new WeakMap();
+
+  var _options$3 = /*#__PURE__*/new WeakMap();
+
+  var _numberRequests = /*#__PURE__*/new WeakMap();
+
+  var _request = /*#__PURE__*/new WeakSet();
+
+  var _createRequest = /*#__PURE__*/new WeakSet();
+
+  var _getManagers = /*#__PURE__*/new WeakSet();
+
+  class Resolver {
+    /**
+     * @type {Resolver[]}
+     * @private
+     */
+
+    /**
+     * @type {Manager[]}
+     */
+
+    /**
+     * @type {Manager[]}
+     */
+
+    /**
+     * @type {{}}
+     */
+
+    /**
+     *
+     * @type {number}
+     */
+
+    /**
+     * @param {Object} options
+     */
+    constructor(options) {
+      _getManagers.add(this);
+
+      _createRequest.add(this);
+
+      _request.add(this);
+
+      _managers.set(this, {
+        writable: true,
+        value: []
+      });
+
+      _options$3.set(this, {
+        writable: true,
+        value: void 0
+      });
+
+      _numberRequests.set(this, {
+        writable: true,
+        value: -1
+      });
+
+      const opt = _classPrivateFieldSet(this, _options$3, extend({}, Defaults$4, options));
+
+      if (opt.params && isPlain(opt.params)) {
+        opt.params = Object.entries(opt.params).map(([key, value]) => `${key}=${value}`);
+      }
+    }
+    /**
+     * @param {function} onStart
+     * @param {function} onEnd
+     */
+
+
+    resolve(onStart, onEnd) {
+      if (this.isRunning === false) {
+        const managers = _classPrivateMethodGet(this, _getManagers, _getManagers2).call(this);
+
+        _classPrivateFieldSet(this, _numberRequests, 0);
+
+        managers.forEach(manager => onStart(manager));
+
+        _classPrivateMethodGet(this, _request, _request2).call(this, 0).catch(function (error) {
+          if (error !== EMPTY_MESSAGE) {
+            console.error(error);
+          }
+        }).then(() => {
+          const number = _classPrivateFieldGet(this, _numberRequests);
+
+          managers.forEach(manager => onEnd(manager, number));
+
+          _classPrivateFieldSet(this, _numberRequests, -1);
+
+          return number;
+        });
+      }
+    }
+    /**
+     * @return {Promise}
+     */
+
+
+    /**
+     * @return {TaskAbstract[]}
+     */
+    get tasks() {
+      let tasks = [];
+
+      _classPrivateFieldGet(this, _managers).forEach(function (manager) {
+        manager.getTasks().forEach(function (task) {
+          if (task.common === false) {
+            tasks.push(task);
+          }
+        });
+      });
+
+      return tasks;
+    }
+    /**
+     * @return {Number[]}
+     */
+
+
+    get tasksId() {
+      return this.tasks.map(task => task.id).filter((value, index, array) => {
+        return array.indexOf(value === index);
+      });
+    }
+    /**
+     *
+     * @param id
+     * @return {TaskAbstract|boolean}
+     */
+
+
+    findTasks(id) {
+      return this.tasks.filter(task => task.id === id);
+    }
+    /**
+     * @return {Object}
+     */
+
+
+    get options() {
+      return _classPrivateFieldGet(this, _options$3);
+    }
+    /**
+     * @return {boolean}
+     */
+
+
+    get isRunning() {
+      return _classPrivateFieldGet(this, _numberRequests) > -1;
+    }
+    /**
+     * @return {Manager[]}
+     */
+
+
+    /**
+     * @param {Manager} manager
+     * @return {Resolver}
+     */
+    static factory(manager) {
+      const options = manager.options.resolver,
+            hash = crc32.str(options.url),
+            cache = _classStaticPrivateFieldSpecGet(Resolver, Resolver, _cache),
+            commonManagers = _classStaticPrivateFieldSpecGet(Resolver, Resolver, _commonManagers);
+
+      const resolver = cache[hash] = cache[hash] instanceof Resolver ? cache[hash] : new Resolver(options),
+            managers = _classPrivateMethodGet(resolver, _getManagers, _getManagers2).call(resolver);
+
+      if (managers.indexOf(manager) === -1) {
+        managers.push(manager);
+
+        if (manager.options.common) {
+          commonManagers.push(manager);
+        }
+
+        manager.ownerElement.addEventListener(Manager.Events.destroy, function (event) {
+          let index = managers.indexOf(event.manager);
+
+          if (index > -1) {
+            commonManagers.forEach(function (manager) {
+              manager.getTasks().filter(value => value.initiatorManager === managers[index]).forEach(function (task) {
+                manager.removeTask(task);
+              });
+            });
+            managers.splice(index, 1);
+          }
+
+          index = commonManagers.findIndex(value => value === event.manager);
+
+          if (index > -1) {
+            commonManagers.splice(index, 1);
+          }
+        });
+      }
+
+      return resolver;
+    }
+
+  }
+
+  function _request2(timeOut = this.options.delayTime) {
+    return _classPrivateMethodGet(this, _createRequest, _createRequest2).call(this, timeOut).then(response => {
+      if (response.ok === false) {
+        throw Error(`${response.status} - ${response.statusText}' `);
+      }
+
+      return response.json().then(raw => {
+        if (raw.length > 0) {
+          raw.forEach(item => {
+            this.findTasks(item.id).forEach(task => {
+              task.manager._updateTask(task, item);
+            });
+          });
+
+          _classStaticPrivateMethodGet(Resolver, Resolver, _updateCommonManagers).call(Resolver, raw, this);
+        }
+
+        return _classPrivateMethodGet(this, _request, _request2).call(this);
+      });
+    });
+  }
+
+  function _updateCommonManagers(response, resolver) {
+    _classStaticPrivateFieldSpecGet(Resolver, Resolver, _commonManagers).forEach(manager => {
+      response.forEach(item => {
+        let task = manager.findTask(item.id);
+
+        if (task === null && StatusesList.is(StatusesList.SET_COMPLETE, item.status) === false) {
+          item.common = true;
+          manager.addTasks([item.id], false);
+          task = manager.findTask(item.id);
+
+          manager._updateTask(task, item);
+
+          task.initiatorManager = resolver.tasks.find(value => value.id === item.id)?.manager;
+        }
+
+        if (task instanceof TaskAbstract && task.common) {
+          manager._updateTask(task, item);
+        } //}
+
+      });
+    });
+  }
+
+  function _createRequest2(timeOut) {
+    return new Promise((resolve, reject) => {
+      const tasks = this.tasksId;
+
+      if (tasks.length === 0) {
+        reject(EMPTY_MESSAGE);
+      } else {
+        setTimeout(() => resolve(tasks), timeOut);
+      }
+    }).then(tasks => {
+      _classPrivateFieldSet(this, _numberRequests, +_classPrivateFieldGet(this, _numberRequests) + 1);
+
+      let body = tasks.map(item => `t[]=${item}`),
+          params = this.options.params;
+
+      if (Array.isArray(params) && params.length > 0) {
+        body = body.concat(params);
+      }
+
+      return fetch(this.options.url, extend({}, this.options, {
+        method: 'post',
+        headers: {
+          "Content-type": "application/x-www-form-urlencoded"
+        },
+        body: encodeURI(body.join('&'))
+      }));
+    });
+  }
+
+  function _getManagers2(common = false) {
+    if (common === false) {
+      return _classPrivateFieldGet(this, _managers);
+    }
+
+    return _classPrivateFieldGet(this, _managers).filter(function (manager) {
+      return manager.options.common === true;
+    });
+  }
+
+  var _cache = {
+    writable: true,
+    value: []
+  };
+  var _commonManagers = {
+    writable: true,
+    value: []
+  };
+
+  /**
+   *
+   */
+
+  const Event = {
+    ready: 'qmc:manager:ready',
+    destroy: 'qmc:manager:destroy',
+    statusChange: 'qmc:manager:statusChange',
+    fetchStart: 'qmc:resolver:start',
+    fetchEnd: 'qmc:resolver:end'
+  };
+
+  Event.toString = function () {
+    const events = [];
+    each(this, function (event) {
+      events.push(event);
+    });
+    return events.join(' ');
+  };
+
+  var _manager = /*#__PURE__*/new WeakMap();
+
+  /**
+   * Manager Event
+   */
+  class ManagerEvent extends CustomEvent {
+    /**
+     *
+     * @type {Manager}
+     */
+
+    /**
+     *
+     * @param {Manager} manager
+     * @param {string} type
+     * @param {Object} props
+     */
+    constructor(manager, type, props) {
+      super(type, props);
+
+      _manager.set(this, {
+        writable: true,
+        value: null
+      });
+
+      _classPrivateFieldSet(this, _manager, manager);
+    }
+    /**
+     * @return {Manager}
+     */
+
+
+    get manager() {
+      return _classPrivateFieldGet(this, _manager);
+    }
+
+  }
 
   /**
    * @file guid.js
@@ -3129,12 +3177,6 @@ var QueueManager = (function (document, window$1) {
           }
         });
       });
-
-      _classPrivateFieldSet(this, _bGroup, new ButtonsGroup({
-        buttons: actions,
-        arrange: false,
-        scaled: true
-      }));
     }
     /**
      *
@@ -3150,7 +3192,17 @@ var QueueManager = (function (document, window$1) {
 
       els.push(_classPrivateFieldGet(this, _icon).render());
       els.push(_classPrivateFieldGet(this, _text));
-      els.push(_classPrivateFieldGet(this, _bGroup).render());
+
+      if (this.map.actions.length > 0) {
+        _classPrivateFieldSet(this, _bGroup, new ButtonsGroup({
+          buttons: this.map.actions,
+          arrange: false,
+          scaled: true
+        }));
+
+        els.push(_classPrivateFieldGet(this, _bGroup).render());
+      }
+
       return els;
     }
     /**
@@ -3163,23 +3215,27 @@ var QueueManager = (function (document, window$1) {
       _classPrivateFieldGet(this, _text).innerHTML = _classPrivateFieldGet(this, _task).statusText;
       _classPrivateFieldGet(this, _icon).icon = this.map.icons[status];
 
-      _classPrivateFieldGet(this, _bGroup).buttons.forEach(button => {
-        let enabledWith = button.options?.enabledWithStatus;
+      const buttonGroup = _classPrivateFieldGet(this, _bGroup);
 
-        if (typeof enabledWith === "function") {
-          enabledWith = enabledWith.call(button, status);
-        }
+      if (buttonGroup) {
+        buttonGroup.buttons.forEach(button => {
+          let enabledWith = button.options?.enabledWithStatus;
 
-        if (Array.isArray(enabledWith)) {
-          if (button.options.enabledWithStatus.length === 0) {
-            return;
+          if (typeof enabledWith === "function") {
+            enabledWith = enabledWith.call(button, status);
           }
 
-          button.disabled = button.options.enabledWithStatus.indexOf(status) === -1;
-        } else if (typeof enabledWith === "boolean") {
-          button.disabled = enabledWith;
-        }
-      });
+          if (Array.isArray(enabledWith)) {
+            if (button.options.enabledWithStatus.length === 0) {
+              return;
+            }
+
+            button.disabled = button.options.enabledWithStatus.indexOf(status) === -1;
+          } else if (typeof enabledWith === "boolean") {
+            button.disabled = enabledWith;
+          }
+        });
+      }
     }
 
   }
@@ -3730,9 +3786,11 @@ var QueueManager = (function (document, window$1) {
         _classPrivateMethodGet(this, _toggleEmptyText, _toggleEmptyText2).call(this, 'hide').then(() => {
           if (resolve) {
             this.resolver.resolve(manager => {
-              manager.trigger(Event.fetchStart, {
-                bubbles: true
-              });
+              if (manager.getTasks().length > 0) {
+                manager.trigger(Event.fetchStart, {
+                  bubbles: true
+                });
+              }
             }, (manager, numberRequests) => {
               manager.trigger(Event.fetchEnd, {
                 bubbles: true
@@ -3928,6 +3986,8 @@ var QueueManager = (function (document, window$1) {
       if (visible && type === 'hide' || visible === false && type === 'show') {
         return animateEl(el, this.options[type + 'Animation']);
       }
+
+      el.style.display = type === 'show' ? 'block' : 'none';
     }
 
     return Promise.resolve(el);

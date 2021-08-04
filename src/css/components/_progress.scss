@@ -19,7 +19,7 @@
 
   @include resizable($progressSizes, $progressDefaultHeight) {
     @include breakpointTabletDown() {
-      height: floor($itemHeight / 2);
+      height: floor($itemHeight * 0.5);
     }
     @if ($itemSize == 'mini') {
       .#{$qmcp}-progress-label {
