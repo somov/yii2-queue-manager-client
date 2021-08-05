@@ -247,21 +247,28 @@ class Manager extends UIComponent {
      * @param {boolean} resolve
      */
     addTasks(tasks, resolve = true) {
-        if (tasks && tasks.length > 0) {
-            this.#tasks = this.#tasks.concat(tasks);
-            this.#toggleEmptyText('hide').then(() => {
-                if (resolve) {
-                    this.resolver.resolve((manager) => {
-                            if (manager.getTasks().length > 0) {
-                                manager.trigger(Events.fetchStart, {bubbles: true})
-                            }
-                        },
-                        (manager, numberRequests) => {
-                            manager.trigger(Events.fetchEnd, {bubbles: true}, {requests: numberRequests})
-                        });
-                }
-            })
+        if (Array.isArray(tasks) === false) {
+            throw new Error('Not valid call. Argument tasks is not array type ');
         }
+
+        this.#taskFactory(tasks);
+        this.#tasks = this.#tasks.concat(tasks);
+
+        tasks.forEach((task) => this.trigger(Events.newTask, {bubbles: true}, {task: task}));
+
+        this.#toggleEmptyText('hide').then(() => {
+            if (resolve) {
+                this.resolver.resolve((manager) => {
+                        if (manager.getTasks().length > 0) {
+                            manager.trigger(Events.fetchStart, {bubbles: true})
+                        }
+                    },
+                    (manager, numberRequests) => {
+                        manager.trigger(Events.fetchEnd, {bubbles: true}, {requests: numberRequests})
+                    });
+            }
+        })
+
     }
 
     /**
@@ -282,10 +289,6 @@ class Manager extends UIComponent {
 
                 task.cssClassSwitch();
 
-                if (Statuses.is([Statuses.EXEC], task.status)) {
-
-                }
-
                 this.trigger(Events.statusChange, {bubbles: true}, {
                     task: task,
                     oldStatus: oldData.status
@@ -301,9 +304,7 @@ class Manager extends UIComponent {
                 }
 
                 if (Statuses.is(Statuses.SET_COMPLETE, task.status)) {
-                    if (task.element.parentNode instanceof Element) {
-                        this.removeTask(task);
-                    }
+                    this.removeTask(task);
                 }
             }
         }
@@ -312,15 +313,12 @@ class Manager extends UIComponent {
     /**
      *
      * @param {TaskAbstract|number} task Task instance or task id
-     * @param {function} onRemoved
      * @return {Boolean}
      */
-    removeTask(task, onRemoved = null) {
-
-        let tasks = this.getTasks();
+    removeTask(task) {
 
         if (typeof task === 'number') {
-            task = tasks.find((t) => t.id === task)
+            task = this.findTask(task);
         }
 
         if (task instanceof TaskAbstract) {
@@ -328,14 +326,21 @@ class Manager extends UIComponent {
             if (id > -1) {
                 this.#tasks.splice(id, 1);
 
-                this.#removeEl(task.element, this.#taskAnimation(task)).then((el) => {
-                    if (onRemoved) {
-                        onRemoved(el);
-                    }
-                    if (this.#tasks.length === 0) {
-                        this.#toggleEmptyText('show');
-                    }
+                this.trigger(Events.taskRemoved, {bubbles: true}, {
+                    task: task
                 });
+
+                if (task.element.parentNode instanceof Element) {
+                    this.#removeEl(task.element, this.#taskAnimation(task)).then((el) => {
+                        this.trigger(Events.taskElementRemoved, {bubbles: true}, {
+                            task: task,
+                            element: el
+                        });
+                        if (this.#tasks.length === 0) {
+                            this.#toggleEmptyText('show');
+                        }
+                    });
+                }
                 return true;
             }
         }
@@ -362,19 +367,8 @@ class Manager extends UIComponent {
      * @return {TaskAbstract[]}
      */
     getTasks(statusFilter) {
-        let tasks = this.#tasks;
-        const TaskClass = this.options.taskClass;
-        tasks.forEach((item, index) => {
-            if (item instanceof TaskAbstract) {
-                return;
-            }
 
-            if (typeof item === 'object') {
-                tasks[index] = extend(new TaskClass(null, this), item);
-            } else if (Number.parseInt(item) > 0) {
-                tasks[index] = new TaskClass(item, this)
-            }
-        });
+        let tasks = this.#tasks;
 
         if (statusFilter) {
             if (typeof statusFilter === 'number') {
@@ -384,7 +378,7 @@ class Manager extends UIComponent {
                 if (statusFilter.indexOf(task.status) > -1) {
                     return task;
                 }
-            });
+            })
         }
 
         return tasks;
@@ -401,6 +395,26 @@ class Manager extends UIComponent {
             return task;
         }
         return null;
+    }
+
+    /**
+     * @param {Object[]|number[]} tasks
+     */
+    #taskFactory(tasks) {
+        const TaskClass = this.options.taskClass;
+        tasks.forEach((item, index) => {
+            if (item instanceof TaskAbstract) {
+                return;
+            }
+            if (typeof item === 'object') {
+                tasks[index] = extend(new TaskClass(null, this), item);
+            } else if (Number.parseInt(item) > 0) {
+                tasks[index] = new TaskClass(item, this)
+            } else {
+                console.log('Delete not valid task item', item);
+                tasks.splice(index, 1);
+            }
+        });
     }
 
     /**
