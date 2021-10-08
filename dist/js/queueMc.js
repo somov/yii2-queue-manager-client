@@ -1,6 +1,6 @@
 /*!
  * @license
- * yii2-queue-manager-client 0.1.0 <https://github.com/somov/yii2-queue-manager-client#readme>
+ * yii2-queue-manager-client 0.1.1 <https://github.com/somov/yii2-queue-manager-client#readme>
  * Copyright: somov.nn@gmail.com
  * Licensed under MIT
  */
@@ -2141,6 +2141,9 @@ var manager = (function (document, window$1) {
     ready: 'qmc:manager:ready',
     destroy: 'qmc:manager:destroy',
     statusChange: 'qmc:manager:statusChange',
+    taskRemoved: 'qmc:manager:taskRemoved',
+    taskElementRemoved: 'qmc:manager:taskElementRemoved',
+    newTask: 'qmc:manager:newTask',
     fetchStart: 'qmc:resolver:start',
     fetchEnd: 'qmc:resolver:end'
   };
@@ -3984,6 +3987,8 @@ var manager = (function (document, window$1) {
 
   var _taskAnimation = /*#__PURE__*/new WeakSet();
 
+  var _taskFactory = /*#__PURE__*/new WeakSet();
+
   var _removeEl = /*#__PURE__*/new WeakSet();
 
   var Manager = /*#__PURE__*/function (_UIComponent) {
@@ -4011,6 +4016,8 @@ var manager = (function (document, window$1) {
       _this = _UIComponent.call(this) || this;
 
       _removeEl.add(_assertThisInitialized(_this));
+
+      _taskFactory.add(_assertThisInitialized(_this));
 
       _taskAnimation.add(_assertThisInitialized(_this));
 
@@ -4203,27 +4210,39 @@ var manager = (function (document, window$1) {
         resolve = true;
       }
 
-      if (tasks && tasks.length > 0) {
-        _classPrivateFieldSet(this, _tasks, _classPrivateFieldGet(this, _tasks).concat(tasks));
-
-        _classPrivateMethodGet(this, _toggleEmptyText, _toggleEmptyText2).call(this, 'hide').then(function () {
-          if (resolve) {
-            _this2.resolver.resolve(function (manager) {
-              if (manager.getTasks().length > 0) {
-                manager.trigger(Event.fetchStart, {
-                  bubbles: true
-                });
-              }
-            }, function (manager, numberRequests) {
-              manager.trigger(Event.fetchEnd, {
-                bubbles: true
-              }, {
-                requests: numberRequests
-              });
-            });
-          }
-        });
+      if (Array.isArray(tasks) === false) {
+        throw new Error('Not valid call. Argument tasks is not array type ');
       }
+
+      _classPrivateMethodGet(this, _taskFactory, _taskFactory2).call(this, tasks);
+
+      _classPrivateFieldSet(this, _tasks, _classPrivateFieldGet(this, _tasks).concat(tasks));
+
+      tasks.forEach(function (task) {
+        return _this2.trigger(Event.newTask, {
+          bubbles: true
+        }, {
+          task: task
+        });
+      });
+
+      _classPrivateMethodGet(this, _toggleEmptyText, _toggleEmptyText2).call(this, 'hide').then(function () {
+        if (resolve) {
+          _this2.resolver.resolve(function (manager) {
+            if (manager.getTasks().length > 0) {
+              manager.trigger(Event.fetchStart, {
+                bubbles: true
+              });
+            }
+          }, function (manager, numberRequests) {
+            manager.trigger(Event.fetchEnd, {
+              bubbles: true
+            }, {
+              requests: numberRequests
+            });
+          });
+        }
+      });
     }
     /**
      * @param {TaskAbstract} task
@@ -4241,9 +4260,6 @@ var manager = (function (document, window$1) {
 
         if (isStatusChange) {
           task.cssClassSwitch();
-
-          if (StatusesList.is([StatusesList.EXEC], task.status)) ;
-
           this.trigger(Event.statusChange, {
             bubbles: true
           }, {
@@ -4261,9 +4277,7 @@ var manager = (function (document, window$1) {
           }
 
           if (StatusesList.is(StatusesList.SET_COMPLETE, task.status)) {
-            if (task.element.parentNode instanceof Element) {
-              this.removeTask(task);
-            }
+            this.removeTask(task);
           }
         }
       }
@@ -4271,24 +4285,15 @@ var manager = (function (document, window$1) {
     /**
      *
      * @param {TaskAbstract|number} task Task instance or task id
-     * @param {function} onRemoved
      * @return {Boolean}
      */
     ;
 
-    _proto.removeTask = function removeTask(task, onRemoved) {
+    _proto.removeTask = function removeTask(task) {
       var _this3 = this;
 
-      if (onRemoved === void 0) {
-        onRemoved = null;
-      }
-
-      var tasks = this.getTasks();
-
       if (typeof task === 'number') {
-        task = tasks.find(function (t) {
-          return t.id === task;
-        });
+        task = this.findTask(task);
       }
 
       if (task instanceof TaskAbstract) {
@@ -4299,15 +4304,26 @@ var manager = (function (document, window$1) {
         if (id > -1) {
           _classPrivateFieldGet(this, _tasks).splice(id, 1);
 
-          _classPrivateMethodGet(this, _removeEl, _removeEl2).call(this, task.element, _classPrivateMethodGet(this, _taskAnimation, _taskAnimation2).call(this, task)).then(function (el) {
-            if (onRemoved) {
-              onRemoved(el);
-            }
-
-            if (_classPrivateFieldGet(_this3, _tasks).length === 0) {
-              _classPrivateMethodGet(_this3, _toggleEmptyText, _toggleEmptyText2).call(_this3, 'show');
-            }
+          this.trigger(Event.taskRemoved, {
+            bubbles: true
+          }, {
+            task: task
           });
+
+          if (task.element.parentNode instanceof Element) {
+            _classPrivateMethodGet(this, _removeEl, _removeEl2).call(this, task.element, _classPrivateMethodGet(this, _taskAnimation, _taskAnimation2).call(this, task)).then(function (el) {
+              _this3.trigger(Event.taskElementRemoved, {
+                bubbles: true
+              }, {
+                task: task,
+                element: el
+              });
+
+              if (_classPrivateFieldGet(_this3, _tasks).length === 0) {
+                _classPrivateMethodGet(_this3, _toggleEmptyText, _toggleEmptyText2).call(_this3, 'show');
+              }
+            });
+          }
 
           return true;
         }
@@ -4327,22 +4343,7 @@ var manager = (function (document, window$1) {
      * @return {TaskAbstract[]}
      */
     _proto.getTasks = function getTasks(statusFilter) {
-      var _this4 = this;
-
       var tasks = _classPrivateFieldGet(this, _tasks);
-
-      var TaskClass = this.options.taskClass;
-      tasks.forEach(function (item, index) {
-        if (item instanceof TaskAbstract) {
-          return;
-        }
-
-        if (typeof item === 'object') {
-          tasks[index] = extend(new TaskClass(null, _this4), item);
-        } else if (Number.parseInt(item) > 0) {
-          tasks[index] = new TaskClass(item, _this4);
-        }
-      });
 
       if (statusFilter) {
         if (typeof statusFilter === 'number') {
@@ -4376,9 +4377,7 @@ var manager = (function (document, window$1) {
       return null;
     }
     /**
-     * @param {Element} el
-     * @param {Object|false}animation
-     * @return {Promise}
+     * @param {Object[]|number[]} tasks
      */
     ;
 
@@ -4455,6 +4454,26 @@ var manager = (function (document, window$1) {
     } else {
       return options[type + 'Animation'];
     }
+  }
+
+  function _taskFactory2(tasks) {
+    var _this4 = this;
+
+    var TaskClass = this.options.taskClass;
+    tasks.forEach(function (item, index) {
+      if (item instanceof TaskAbstract) {
+        return;
+      }
+
+      if (typeof item === 'object') {
+        tasks[index] = extend(new TaskClass(null, _this4), item);
+      } else if (Number.parseInt(item) > 0) {
+        tasks[index] = new TaskClass(item, _this4);
+      } else {
+        console.log('Delete not valid task item', item);
+        tasks.splice(index, 1);
+      }
+    });
   }
 
   function _removeEl2(el, animation) {

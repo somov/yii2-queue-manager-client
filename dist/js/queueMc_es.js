@@ -1,6 +1,6 @@
 /*!
  * @license
- * yii2-queue-manager-client 0.1.0 <https://github.com/somov/yii2-queue-manager-client#readme>
+ * yii2-queue-manager-client 0.1.1 <https://github.com/somov/yii2-queue-manager-client#readme>
  * Copyright: somov.nn@gmail.com
  * Licensed under MIT
  */
@@ -1962,6 +1962,9 @@ var QueueManager = (function (document, window$1) {
     ready: 'qmc:manager:ready',
     destroy: 'qmc:manager:destroy',
     statusChange: 'qmc:manager:statusChange',
+    taskRemoved: 'qmc:manager:taskRemoved',
+    taskElementRemoved: 'qmc:manager:taskElementRemoved',
+    newTask: 'qmc:manager:newTask',
     fetchStart: 'qmc:resolver:start',
     fetchEnd: 'qmc:resolver:end'
   };
@@ -3580,6 +3583,8 @@ var QueueManager = (function (document, window$1) {
 
   var _taskAnimation = /*#__PURE__*/new WeakSet();
 
+  var _taskFactory = /*#__PURE__*/new WeakSet();
+
   var _removeEl = /*#__PURE__*/new WeakSet();
 
   class Manager extends UIComponent {
@@ -3603,6 +3608,8 @@ var QueueManager = (function (document, window$1) {
       super();
 
       _removeEl.add(this);
+
+      _taskFactory.add(this);
 
       _taskAnimation.add(this);
 
@@ -3780,27 +3787,37 @@ var QueueManager = (function (document, window$1) {
      * @param {boolean} resolve
      */
     addTasks(tasks, resolve = true) {
-      if (tasks && tasks.length > 0) {
-        _classPrivateFieldSet(this, _tasks, _classPrivateFieldGet(this, _tasks).concat(tasks));
-
-        _classPrivateMethodGet(this, _toggleEmptyText, _toggleEmptyText2).call(this, 'hide').then(() => {
-          if (resolve) {
-            this.resolver.resolve(manager => {
-              if (manager.getTasks().length > 0) {
-                manager.trigger(Event.fetchStart, {
-                  bubbles: true
-                });
-              }
-            }, (manager, numberRequests) => {
-              manager.trigger(Event.fetchEnd, {
-                bubbles: true
-              }, {
-                requests: numberRequests
-              });
-            });
-          }
-        });
+      if (Array.isArray(tasks) === false) {
+        throw new Error('Not valid call. Argument tasks is not array type ');
       }
+
+      _classPrivateMethodGet(this, _taskFactory, _taskFactory2).call(this, tasks);
+
+      _classPrivateFieldSet(this, _tasks, _classPrivateFieldGet(this, _tasks).concat(tasks));
+
+      tasks.forEach(task => this.trigger(Event.newTask, {
+        bubbles: true
+      }, {
+        task: task
+      }));
+
+      _classPrivateMethodGet(this, _toggleEmptyText, _toggleEmptyText2).call(this, 'hide').then(() => {
+        if (resolve) {
+          this.resolver.resolve(manager => {
+            if (manager.getTasks().length > 0) {
+              manager.trigger(Event.fetchStart, {
+                bubbles: true
+              });
+            }
+          }, (manager, numberRequests) => {
+            manager.trigger(Event.fetchEnd, {
+              bubbles: true
+            }, {
+              requests: numberRequests
+            });
+          });
+        }
+      });
     }
     /**
      * @param {TaskAbstract} task
@@ -3818,9 +3835,6 @@ var QueueManager = (function (document, window$1) {
 
         if (isStatusChange) {
           task.cssClassSwitch();
-
-          if (StatusesList.is([StatusesList.EXEC], task.status)) ;
-
           this.trigger(Event.statusChange, {
             bubbles: true
           }, {
@@ -3838,9 +3852,7 @@ var QueueManager = (function (document, window$1) {
           }
 
           if (StatusesList.is(StatusesList.SET_COMPLETE, task.status)) {
-            if (task.element.parentNode instanceof Element) {
-              this.removeTask(task);
-            }
+            this.removeTask(task);
           }
         }
       }
@@ -3848,16 +3860,13 @@ var QueueManager = (function (document, window$1) {
     /**
      *
      * @param {TaskAbstract|number} task Task instance or task id
-     * @param {function} onRemoved
      * @return {Boolean}
      */
 
 
-    removeTask(task, onRemoved = null) {
-      let tasks = this.getTasks();
-
+    removeTask(task) {
       if (typeof task === 'number') {
-        task = tasks.find(t => t.id === task);
+        task = this.findTask(task);
       }
 
       if (task instanceof TaskAbstract) {
@@ -3866,15 +3875,26 @@ var QueueManager = (function (document, window$1) {
         if (id > -1) {
           _classPrivateFieldGet(this, _tasks).splice(id, 1);
 
-          _classPrivateMethodGet(this, _removeEl, _removeEl2).call(this, task.element, _classPrivateMethodGet(this, _taskAnimation, _taskAnimation2).call(this, task)).then(el => {
-            if (onRemoved) {
-              onRemoved(el);
-            }
-
-            if (_classPrivateFieldGet(this, _tasks).length === 0) {
-              _classPrivateMethodGet(this, _toggleEmptyText, _toggleEmptyText2).call(this, 'show');
-            }
+          this.trigger(Event.taskRemoved, {
+            bubbles: true
+          }, {
+            task: task
           });
+
+          if (task.element.parentNode instanceof Element) {
+            _classPrivateMethodGet(this, _removeEl, _removeEl2).call(this, task.element, _classPrivateMethodGet(this, _taskAnimation, _taskAnimation2).call(this, task)).then(el => {
+              this.trigger(Event.taskElementRemoved, {
+                bubbles: true
+              }, {
+                task: task,
+                element: el
+              });
+
+              if (_classPrivateFieldGet(this, _tasks).length === 0) {
+                _classPrivateMethodGet(this, _toggleEmptyText, _toggleEmptyText2).call(this, 'show');
+              }
+            });
+          }
 
           return true;
         }
@@ -3895,19 +3915,6 @@ var QueueManager = (function (document, window$1) {
      */
     getTasks(statusFilter) {
       let tasks = _classPrivateFieldGet(this, _tasks);
-
-      const TaskClass = this.options.taskClass;
-      tasks.forEach((item, index) => {
-        if (item instanceof TaskAbstract) {
-          return;
-        }
-
-        if (typeof item === 'object') {
-          tasks[index] = extend(new TaskClass(null, this), item);
-        } else if (Number.parseInt(item) > 0) {
-          tasks[index] = new TaskClass(item, this);
-        }
-      });
 
       if (statusFilter) {
         if (typeof statusFilter === 'number') {
@@ -3939,9 +3946,7 @@ var QueueManager = (function (document, window$1) {
       return null;
     }
     /**
-     * @param {Element} el
-     * @param {Object|false}animation
-     * @return {Promise}
+     * @param {Object[]|number[]} tasks
      */
 
 
@@ -4001,6 +4006,24 @@ var QueueManager = (function (document, window$1) {
     } else {
       return options[type + 'Animation'];
     }
+  }
+
+  function _taskFactory2(tasks) {
+    const TaskClass = this.options.taskClass;
+    tasks.forEach((item, index) => {
+      if (item instanceof TaskAbstract) {
+        return;
+      }
+
+      if (typeof item === 'object') {
+        tasks[index] = extend(new TaskClass(null, this), item);
+      } else if (Number.parseInt(item) > 0) {
+        tasks[index] = new TaskClass(item, this);
+      } else {
+        console.log('Delete not valid task item', item);
+        tasks.splice(index, 1);
+      }
+    });
   }
 
   function _removeEl2(el, animation = this.options.hideAnimation) {
