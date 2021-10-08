@@ -1,0 +1,5 @@
+@mixin unify-parent($child) {
+  @at-root #{selector-unify(&, $child)} {
+    @content;
+  }
+}

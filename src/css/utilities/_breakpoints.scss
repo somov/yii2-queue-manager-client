@@ -1,0 +1,57 @@
+
+
+
+@mixin breakpointDirection($direction, $size, $to: false, $media: only screen) {
+
+  $min: $size;
+  $max: $to;
+
+  @if ($direction == down) {
+    $min: $to;
+    $max: $size;
+  }
+
+
+  $condition: '';
+  @if ($min) {
+    $condition: "(min-width:" + #{$min}px+")";
+  }
+  @if ($max) {
+
+    @if str-length($condition) > 0 {
+      $condition: $condition  + " and "
+    }
+    $condition: $condition + "(max-width:" + #{$max}px+")";
+  }
+
+  @media #{$media} and #{$condition} {
+    @content;
+  }
+
+}
+
+
+@mixin breakpointMobileUp($to: false, $media: only screen) {
+  @include breakpointDirection(up, $breakpointMobile, $to, $media) {
+    @content;
+  }
+}
+
+@mixin breakpointMobileDown($media: only screen) {
+  @include breakpointDirection(up, $breakpointMobile, false, $media) {
+    @content;
+  }
+}
+
+@mixin breakpointTabletUp($to: false, $media: only screen) {
+  @include breakpointDirection(up, $breakpointTablet, $to, $media) {
+    @content;
+  }
+}
+
+@mixin breakpointTabletDown($to: false, $media: only screen) {
+  @include breakpointDirection(down, $breakpointTablet, $to, $media) {
+    @content;
+  }
+}
+

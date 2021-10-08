@@ -1,0 +1,52 @@
+
+@import '../../utilities/map';
+@import "../../variables/progress";
+
+
+
+$local: (
+        default: (
+                progress : (
+                        height: $progressDefaultHeight,
+                        textColor: white,
+                        bg: rgba(196, 244, 255, .2),
+                        border: 1px black,
+                        borderRadius: 3px,
+                        boxShadow: (inset 2px 2px 5px rgba(154, 147, 140, 0.5), 1px 1px 5px rgba(255, 255, 255, 1)),
+                        textShadow: 1px 2px 1px rgb(72, 76, 81),
+                ),
+                progressBar : (
+                        bg: #55acee
+                ),
+        ),
+);
+
+
+$themes: r-map-merge($themes, $local);
+
+
+
+@each $name, $map in $colors {
+        $themes: r-map-merge($themes, (
+                $name: (
+                        progress : (
+                                height: $progressDefaultHeight,
+                                textColor: white,
+                                bg: transparentize(map-get($map, "300"),0.9),
+                                border: 1px map-get($map, "800"),
+                                boxShadow: (inset 2px 2px 5px transparentize(map-get($map, "600"),0.9), 1px 1px 5px transparentize(map-get($map, "400"),0.9)),
+                                textShadow: 1px 2px 1px map-get($map, "600"),
+                        ),
+                        progressBar : (
+                                bg: (
+                                        direction: 90deg,
+                                        color1: map-get($map, "200"),
+                                        color2: map-get($map, "300"),
+                                        color3: map-get($map, "500")
+                                ),
+                        ),
+                )
+        ));
+
+}
+

@@ -1,0 +1,6 @@
+/*!
+ * @license
+ * <%= name %> <%= version %> <<%= homepage %>>
+ * Copyright: <%= author %>
+ * Licensed under <%= license %>
+ */

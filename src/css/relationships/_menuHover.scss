@@ -1,0 +1,81 @@
+@import '../utilities/themify';
+@import '../variables/themes/icon-t';
+
+.#{$qmcp}-task-item .#{$qmcp}-status:hover > .#{$qmcp}-icon-t > span {
+  transform: unset;
+}
+
+
+.#{$qmcp}-task-item .#{$qmcp}-status:hover > .#{$qmcp}-icon-t > span span {
+
+  height: inherit;
+  width: inherit;
+  transform-origin: inherit;
+  border: unset;
+
+  &.s2 {
+    height: inherit;
+    width: inherit;
+    transform-origin: inherit;
+  }
+
+  &.s3 {
+    height: inherit;
+    width: inherit;
+    transform-origin: inherit;
+    @include themify(icon) {
+      background-color: themed(color)
+    }
+  }
+
+  @extend %iconMore;
+
+}
+
+
+
+.#{$qmcp}-task-item {
+
+  .#{$qmcp}-status-wrapper .#{$qmcp}-button-group {
+    position: absolute;
+    padding: 35% 0 25% 100%;
+    width: auto;
+    flex-wrap: nowrap;
+    visibility: hidden;
+    > button {
+      &:not(:first-child) {
+        margin-right: -4em;
+      }
+      transform: scale(0.5);
+      opacity: 0;
+
+      &.disabled, &[disabled] {
+      //  display: none;
+      }
+    }
+  }
+
+  &.#{$qmcp}-task-item-right > .#{$qmcp}-status-wrapper .#{$qmcp}-button-group {
+    padding: 35% 0 25% 0;
+    transform: translateX(-100%);
+    flex-direction: row-reverse;
+  }
+
+}
+
+.#{$qmcp}-task-item {
+  .#{$qmcp}-status-wrapper:hover, .#{$qmcp}-status-wrapper:active {
+    .#{$qmcp}-button-group {
+      visibility: visible;
+
+      > button {
+        opacity: 1;
+        transform: scale(1);
+        margin-right: 0;
+        transition: opacity 0.1s,
+        transform 0.3s ease-in-out,
+        margin-left 0.3s 0.3s linear;
+      }
+    }
+  }
+}

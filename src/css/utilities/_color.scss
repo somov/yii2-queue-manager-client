@@ -1,0 +1,40 @@
+@use "sass:math";
+
+@function colorMap($color, $variations) {
+
+  $map: ();
+
+  $maxVar: 36;
+  $mid: $variations * 0.5;
+  $dist: $mid - 1;
+  $step: math.div($maxVar, $dist);
+
+  // lighten and darken
+  @for $i from 1 through $dist {
+    $percent: $maxVar - ($step * ($i - 1));
+    $darken: ($variations - $i) * 100;
+    $lighten: $i * 100;
+    $map: map-merge($map, (
+            #{$lighten}: lighten($color, $percent),
+            #{$darken}: darken($color, $percent)
+    ));
+  }
+
+  // middle eg 500
+  $map: map-merge($map, (50: lighten($color, 38.7)));
+  $map: map-merge($map, (#{$variations*0.5*100}: $color));
+
+  @return $map;
+}
+
+
+@function get-colors($base, $enabled) {
+  $map: ();
+
+  @each $name, $color in $base {
+    @if (index($enabled, $name) != null) {
+      $map: map-merge($map, ($name: colorMap($color, 10)));
+    }
+  }
+  @return $map;
+}

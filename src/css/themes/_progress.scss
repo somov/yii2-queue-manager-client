@@ -1,0 +1,74 @@
+@import "../utilities/themify";
+@import "../variables/themes/progress";
+@import "../utilities/card";
+@import "../utilities/linear-gradient";
+
+.#{$qmcp}-progress {
+
+  @include themify(progress) {
+    background: themed(bg);
+    color: themed(textColor);
+    border: themed(border);
+    border-radius: themed(borderRadius);
+    box-shadow: themed(boxShadow);
+    text-shadow: themed(textShadow);
+
+
+    @if (themed(height) != $progressDefaultHeight) {
+
+      @include resizable($progressSizes, themed(height)) {
+        @include breakpointTabletDown() {
+          height: floor($itemHeight * 0.5);
+        }
+        @if ($itemSize == 'mini') {
+          .#{$qmcp}-progress-label {
+            visibility: hidden;
+          }
+        }
+      }
+    }
+  }
+}
+
+.#{$qmcp}-progress-bar {
+  @include themify('progressBar') {
+
+    $bg: themed(bg);
+
+    @if (type-of($bg) == 'map') {
+      @at-root .#{$themeItem} .#{$qmcp}-progress-items :nth-child(odd) > .#{$qmcp}-progress-bar {
+        @include linear-gradient(map_get($bg, direction), map_get($bg, color1) 0%, map_get($bg, color2) 60%, map_get($bg, color3) 100%);
+      }
+
+      @at-root .#{$themeItem} .#{$qmcp}-progress-items :nth-child(even) > .#{$qmcp}-progress-bar {
+        @include linear-gradient(map_get($bg, direction), map_get($bg, color3) 0%, map_get($bg, color2) 60%, map_get($bg, color1) 100%);
+      }
+
+      @at-root .#{$themeItem} .#{$qmcp}-no-gradient .#{$qmcp}-progress-items .#{$qmcp}-progress-bar {
+        background: nth(map_get($bg, color3), 1);
+      }
+      @media all and (max-width: 480px) {
+        @at-root .#{$themeItem} .#{$qmcp}-more-than-three .#{$qmcp}-progress-bar {
+          background: nth(map_get($bg, color3), 1) !important;
+        }
+      }
+    } @else {
+      background: $bg;
+    }
+  }
+
+  .#{$qmcp}-progress-items :first-child > & {
+    @include themify('progress') {
+      border-top-left-radius: themed(borderRadius);
+      border-bottom-left-radius: themed(borderRadius);
+    }
+  }
+
+  .#{$qmcp}-progress-items :last-child > & {
+    @include themify('progress') {
+      border-top-right-radius: themed(borderRadius);
+      border-bottom-right-radius: themed(borderRadius);
+    }
+  }
+
+}

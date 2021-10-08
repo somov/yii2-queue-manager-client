@@ -1,0 +1,132 @@
+@import "../utilities/card";
+@import "../utilities/breakpoints";
+
+
+.#{$qmcp}-button {
+
+  display: flex;
+  flex-flow: row nowrap;
+  background-color: #fff;
+  color: #40282a;
+
+  align-items: center;
+  border-radius: 0.5em;
+
+  overflow: hidden;
+  transform: translateZ(0);
+  transition: all 0.5s ease;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  padding: 0.1em 0.5em;
+
+  @include card(1, 1px solid #eee, (white, black));
+
+  > p {
+    display: inline-block;
+    margin: 0 0.2em 0 0;
+  }
+
+  &.#{$qmcp}-has-hidden {
+
+    > .#{$qmcp}-button-hidden {
+      opacity: 0;
+      width: 0;
+      transform: translateX(4em);
+    }
+
+    &:hover .#{$qmcp}-button-hidden,  &.#{$qmcp}-selected .#{$qmcp}-button-hidden  {
+      opacity: 1;
+      transition:
+              opacity 0.4s 0.1s,
+              transform 0.4s;
+      width: auto;
+      transform: translateX(0);
+    }
+
+  }
+
+  &:hover {
+    //@include card(3, 1px solid white, (white, white));
+  }
+
+  &:active {
+    transform: scale(1.1, 1.1);
+  }
+
+  &:focus {
+    outline: 0;
+    border: none;
+  }
+
+  @at-root button#{ selector-unify(&, ':disabled')}, button#{ selector-unify(&, '[disabled]')}, &.disabled {
+    //background-color: #f8f8f8;
+    cursor: not-allowed;
+    > p {
+      color: #949494;
+    }
+
+    .#{$qmcp}-icon-t > span > span {
+      background-color: grey;
+    }
+  }
+
+  .drop {
+    display: block;
+    position: absolute;
+    background: #ccc;
+    border-radius: 100%;
+    transform: scale(0);
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+  }
+
+  .drop:before {
+    display: block;
+    position: absolute;
+    content: "";
+    background-color: #eee;
+    border-radius: 100%;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    transform: scale(0);
+  }
+
+  .drop.animate {
+    animation: drop 1s ease-out;
+  }
+
+  .drop.animate:before {
+    animation: drop2 1s ease-out;
+  }
+
+  @keyframes drop {
+    100% {
+      opacity: 0;
+      transform: scale(2.5);
+    }
+  }
+  @keyframes drop2 {
+    30% {
+      opacity: 1;
+      transform: scale(0);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(2.5);
+    }
+  }
+
+}
+
+.#{$qmcp}-buttons-dark .#{$qmcp}-button {
+  background-color: black;
+  color: white;
+
+  @include card(1, 1px solid transparent);
+
+  &:hover {
+    @include card(2, 1px solid white, (white, white), (top, left));
+  }
+}

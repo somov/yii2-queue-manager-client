@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Queue manager examples</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <script src="bundle_es.js"></script>
+    <script src="js/initiator.js"></script>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" type="text/css" href="css/example.css">
+    <link rel="stylesheet" type="text/css" href="bundle.css">
+</head>
+
+<body>
+
+<script>
+    const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
+
+    function getConfigs(theme) {
+
+        const clickHandler = function () {
+            alert('click: ' + this.element.innerText + ' ' + this.options.data.task.title);
+        };
+
+        const managers = [];
+        ['mini', 'small', null, 'big', 'extra-large'].forEach(function (size) {
+            const urlSuffix = ['threads', 'example'][random(0, 2)];
+            managers.push({
+                title: `<h3>Test Manager. Type: ${urlSuffix}. Size: ${size ?? 'Default'} </h3>`,
+                theme: theme,
+                resolver: {
+                    url: 'queue-reader-' + urlSuffix,
+                },
+                taskOptions: {
+                    progress: {
+                        size: size,
+                    },
+                    actions: [
+                        {
+                            hiddenLabel: 'Details',
+                            iconName: 'menu',
+                            iconSize: 'sm',
+                            handler: clickHandler,
+                            enabledWithStatus: function (status) {
+                                return false;
+                            }
+                        },
+
+                        {
+                            hiddenLabel: 'Stop',
+                            iconName: 'stop',
+                            iconSize: 'sm',
+                            enabledWithStatus: [1],
+                            handler: clickHandler
+                        },
+                        {
+                            hiddenLabel: 'Remove',
+                            iconName: 'minus',
+                            iconSize: 'sm',
+                            enabledWithStatus: [0],
+                            handler: clickHandler
+                        },
+                    ]
+                },
+                tasksAnimation: {
+                    hide: {
+                        //2: false
+                        2: [{delay: 1000}, {delay: 10000}, {delay: 2000}, false][random(0, 4)]
+                    }
+                },
+
+
+            })
+        });
+        return managers;
+    }
+
+
+</script>
+
+
+<div class="wrapper">
+    <div class="actions"></div>
+    <div id="manager-placement"></div>
+</div>
+
+
+<div id="template-managers" style="display: none">
+    <div class="test-manager">
+        <div class="manager"></div>
+        <div class="manager-actions">
+            <button type="button" class="qmc-button" data-method="addTask" disabled><span class="qmc-icon-t qmc-size-mini plus"><span><span
+                    class="s1"></span><span class="s2"></span><span class="s3"></span></span></span></button>
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>

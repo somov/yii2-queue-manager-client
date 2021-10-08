@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JQuery queue manager example</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <script src="https://unpkg.com/jquery"></script>
+    <script src="jquery.bundle_es.js"></script>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" type="text/css" href="css/example.css">
+    <link rel="stylesheet" type="text/css" href="bundle.css">
+    <style type="text/css">
+
+        .managers {
+            width: 100%;
+            float: left;
+        }
+
+        @media only screen and (min-width: 1024px) {
+            .managers {
+                width: 50%;
+            }
+        }
+
+        .wrapper > .qmc-button-group {
+            justify-content: flex-start;
+            padding: 1em;
+            font-size: 11px;
+            margin: 3em;
+        }
+
+        .dark {
+            background-color: black;
+            color: white;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div class="managers qmc-buttons-dark dark">
+    <div class="wrapper has-buttons">
+        <div class="manager" data-manager='{"title":"Statuses theme","theme":{"0":"blue","1":"teal","2":"green","3":"red"}}'></div>
+    </div>
+
+    <div class="wrapper has-buttons">
+        <div class="manager" data-manager='{"resolver": {"url": "queue-reader-example"}, "title":"Statuses theme 2","theme":{"0":"teal","1":"green","2":"blue","3":"orange"}}'></div>
+    </div>
+</div>
+
+<div class="managers" style="font-size: 12px">
+    <div class="wrapper has-buttons">
+        <div class="manager" data-manager='{"common": true,"title":"Common manager", "theme": "deep-purple", "statusText":{"0": "", "1":"", "2": ""}, "taskOptions": {"progress": {"size": "mini"}, "parts": {"text": false} }}'></div>
+    </div>
+</div>
+
+
+<textarea id="log" readonly></textarea>
+<button type="button" data-method="clear-log">Clear</button>
+<script>
+
+    const clickHandler = function () {
+        alert('click: ' + this.element.innerText + ' ' + this.options.data.task.title);
+    };
+
+    const postTask = function (name) {
+        return fetch('add-task', {
+            method: 'post',
+            headers: {
+                "Content-type": "application/x-www-form-urlencoded"
+            },
+            body: 'name=' + name
+        }).then(function (response) {
+
+            if (response.ok) {
+                return response.json();
+            }
+            throw Error(response.statusText);
+        })
+    };
+
+
+    (function ($, Manager) {
+        const $log = $('#log');
+
+        $log.addLog = function (text) {
+            const element = this.get(0);
+            this.val(function (i, t) {
+                element.style.height = (element.scrollHeight) + "px";
+                return t + text + "\n";
+            });
+        };
+
+
+        $('document').ready(function () {
+
+            $('button[data-method="clear-log"]').on('click', function () {
+                $log.val('');
+            });
+
+        $(".dark").on(String(Manager.Events), function (event) {
+                let text = [];
+                text.push(event.originalEvent.manager.options.title);
+                text.push(event.type);
+                if (event.detail) {
+                    for (const [key, value] of Object.entries(event.detail)) {
+                        text.push(key + ':' + value);
+                    }
+                }
+                $log.addLog(text.join(' - '));
+            });
+
+            $('.manager')
+                .on(Manager.Events.ready, function () {
+                    const $el = $(this);
+                    if ($el.closest('.managers').hasClass('dark')) {
+                        postTask('Test task')
+                            .catch((error) => alert(error))
+                            .then(function (data) {
+                                $el.queueManager('addTasks', data)
+                            })
+                    }
+                });
+
+
+            $('.wrapper').each(function () {
+
+                let $wrapper = $(this);
+                $wrapper.find('.manager').queueManager({
+                    /*tasksAnimation: {
+                        hide: {
+                        2: false,
+                        2: [{delay: 1000}, {delay: 10000}, {delay: 2000}, false][random(0, 4)]
+                        }
+                    },*/
+                    taskOptions: {
+                        /*progress: {
+                            size: 'small',
+                        },*/
+                        actions: [
+                            {
+                                hiddenLabel: 'Details',
+                                iconName: 'menu',
+                                iconSize: 'sm',
+                                handler: clickHandler,
+                                enabledWithStatus: function (status) {
+                                    return false;
+                                }
+                            },
+                            {
+                                hiddenLabel: 'Stop',
+                                iconName: 'stop',
+                                iconSize: 'sm',
+                                enabledWithStatus: [1],
+                                handler: clickHandler
+                            },
+                            {
+                                hiddenLabel: 'Remove',
+                                iconName: 'minus',
+                                iconSize: 'sm',
+                                enabledWithStatus: [0],
+                                handler: clickHandler
+                            },
+                        ],
+                    },
+                    resolver: {
+                        url: 'queue-reader-threads'
+                    },
+                });
+
+                if ($wrapper.hasClass('has-buttons')) {
+                    $wrapper.queueManager('createButtons', {
+                        scaled: true,
+                        buttons: [
+                            {
+                                hiddenLabel: 'Add',
+                                iconName: 'plus',
+                                iconHoverName: 'clock',
+                                handler: function (event) {
+                                    event.preventDefault();
+                                    const $el = $(this.element);
+                                    postTask(prompt('Task name')).then(function (task) {
+                                        $el.closest('.wrapper').find('.manager').queueManager('addTasks', task)
+                                    })
+                                }
+                            },
+                            {
+                                hiddenLabel: 'Destroy',
+                                iconName: 'close',
+                                iconHoverName: 'warning',
+                                iconSize: 'sm',
+                                handler: function (event) {
+                                    event.preventDefault();
+                                    const $el = $(this.element).parent();
+                                    $el.closest('.wrapper').find('.manager').queueManager('destroy');
+                                    $el.remove();
+                                }
+                            }
+                        ]
+                    }, $wrapper)
+                }
+            });
+
+        });
+
+
+
+    })(window.jQuery, window.jQuery.fn.queueManager.Manager);
+</script>
+
+</body>
+</html>

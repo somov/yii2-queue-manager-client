@@ -1,0 +1,36 @@
+
+.#{$qmcp}-progress-wrapper {
+  opacity: 0;
+  transition: opacity ease-in-out 1s;
+}
+
+
+.#{$qmcp}-status-exec .#{$qmcp}-progress-wrapper {
+  opacity: 1;
+}
+
+.#{$qmcp}-status-done .#{$qmcp}-progress-wrapper {
+  transition-delay: 3s;
+  opacity: 0;
+}
+
+.#{$qmcp}-status-error ul.#{$qmcp}-list-errors {
+  display: inline-block;
+
+  @include breakpointTabletUp() {
+    width: 100%;
+    display: inline-flex;
+    flex-flow: column wrap;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+
+.#{$qmcp}-status-error:hover ul.#{$qmcp}-list-errors {
+  font-weight: bold;
+
+  & > li::marker {
+    color: red;
+  }
+}
