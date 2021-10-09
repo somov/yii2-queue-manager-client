@@ -6,3 +6,5 @@
 /.gitignore         export-ignore
 /tests              export-ignore
 /build              export-ignore
+/configs            export-ignore
+/examples           export-ignore
