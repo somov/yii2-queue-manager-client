@@ -1,0 +1,30 @@
+{
+  "name": "somov/yii2-queue-manager-client",
+  "description": "Yii2 manager Queue client",
+  "license": "BSD-3-Clause",
+  "type": "composer-asset",
+  "authors": [
+    {
+      "name": "Somov",
+      "email": "somov.nn@gmail.com"
+    }
+  ],
+
+  "require": {
+    "somov/composer-asset-installer": "*"
+  },
+
+  "extra": {
+    "installer-asset-name": "yii2-queue-manager-client"
+  },
+
+  "archive": {
+    "exclude": [
+      "/.*",
+      "/build*",
+      "/configs*",
+      "/examples*",
+      "/src*"
+    ]
+  }
+}
