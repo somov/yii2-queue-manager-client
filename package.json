@@ -1,6 +1,6 @@
 {
   "name": "yii2qmc",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Yii2 Queue manager client",
   "main": "src/js/manager.js",
   "type": "module",

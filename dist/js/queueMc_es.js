@@ -1,6 +1,6 @@
 /*!
  * @license
- * yii2-queue-manager-client 0.1.1 <https://github.com/somov/yii2-queue-manager-client#readme>
+ * yii2qmc 1.0.2 <https://github.com/somov/yii2-queue-manager-client#readme>
  * Copyright: somov.nn@gmail.com
  * Licensed under MIT
  */
@@ -1895,7 +1895,7 @@ var QueueManager = (function (document, window$1) {
 
           manager._updateTask(task, item);
 
-          task.initiatorManager = resolver.tasks.find(value => value.id === item.id)?.manager;
+          task.initiatorManager = resolver.tasks.find(value => value.id === item.id).manager;
         }
 
         if (task instanceof TaskAbstract && task.common) {
