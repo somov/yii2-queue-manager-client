@@ -181,7 +181,7 @@ export default class Resolver {
      */
     get tasksId() {
         return this.tasks.map((task) => task.id).filter((value, index, array) => {
-            return array.indexOf(value === index);
+            return array.indexOf(value) === index;
         });
     }
 
