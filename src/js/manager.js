@@ -303,9 +303,12 @@ class Manager extends UIComponent {
                         element.style.display = 'none';
                         this.wrapperTasksElement.append(element);
                         animateEl(element, this.#taskAnimation(task, 'show'))
-                            .then(() => this.trigger(Events.taskElementAppend, {bubbles: true}, {
-                                task: task,
-                            }));
+                            .then(() => {
+                                this.trigger(Events.taskElementAppend, {bubbles: true}, {
+                                    task: task
+                                });
+                                task.callCallback('show');
+                            });
                     }
                 }
 
@@ -332,12 +335,15 @@ class Manager extends UIComponent {
             if (id > -1) {
                 this.#tasks.splice(id, 1);
 
+
                 this.trigger(Events.taskRemoved, {bubbles: true}, {
                     task: task
                 });
+                task.callCallback('remove');
 
                 if (task.element.parentNode instanceof Element) {
                     this.#removeEl(task.element, this.#taskAnimation(task)).then((el) => {
+                        task.callCallback('hide');
                         this.trigger(Events.taskElementRemoved, {bubbles: true}, {
                             task: task,
                             element: el

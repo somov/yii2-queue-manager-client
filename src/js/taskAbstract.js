@@ -52,6 +52,17 @@ export default class TaskAbstract extends UIComponent {
      * @type {Element}
      */
     #element = null;
+    /**
+     * @type {{init: null, hide: null, show: null, refresh: null, render: null, remove: null}}
+     */
+    callbacks = {
+        init: null,
+        render: null,
+        show: null,
+        refresh: null,
+        hide: null,
+        remove: null
+    };
 
 
     /**
@@ -62,6 +73,17 @@ export default class TaskAbstract extends UIComponent {
         super();
         this.id = parseInt(id);
         this.#manager = manager;
+        setTimeout(() => this.callCallback('init'), 50);
+    }
+
+    /**
+     * @param {string} type
+     * @param {Array} params
+     */
+    callCallback(type, params = []) {
+        if (typeof this.callbacks[type] === 'function') {
+            this.callbacks[type].apply(this, params);
+        }
     }
 
     /**
@@ -81,7 +103,7 @@ export default class TaskAbstract extends UIComponent {
 
             elTask = this.createEl('div', {className: this._buildCssClass()});
         this._renderChild(elTask);
-
+        this.callCallback('render', [elTask, element]);
         element.append(elTask);
 
         return element;
@@ -154,6 +176,7 @@ export default class TaskAbstract extends UIComponent {
         if (elements) {
             this._refreshElements(elements, response);
         }
+        this.callCallback('refresh', [response, elements]);
     }
 
     /**
