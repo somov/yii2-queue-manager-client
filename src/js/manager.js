@@ -406,8 +406,10 @@ class Manager extends UIComponent {
             if (item instanceof TaskAbstract) {
                 return;
             }
-            if (typeof item === 'object') {
-                tasks[index] = extend(new TaskClass(null, this), item);
+            if (typeof item === 'object' && typeof item.id !== undefined ) {
+                const id = item.id;
+                delete  item.id;
+                tasks[index] = extend(new TaskClass(id, this), item);
             } else if (Number.parseInt(item) > 0) {
                 tasks[index] = new TaskClass(item, this)
             } else {
