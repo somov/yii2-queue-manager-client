@@ -7,6 +7,7 @@ import {each} from './utils/obj';
     destroy: 'qmc:manager:destroy',
     statusChange: 'qmc:manager:statusChange',
     taskRemoved: 'qmc:manager:taskRemoved',
+    taskElementAppend: 'qmc:manager:taskElementAppend',
     taskElementRemoved: 'qmc:manager:taskElementRemoved',
     newTask: 'qmc:manager:newTask',
     fetchStart: 'qmc:resolver:start',

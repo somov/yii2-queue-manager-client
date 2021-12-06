@@ -283,7 +283,9 @@ class Manager extends UIComponent {
             const isStatusChange = task.status !== response.status,
                 oldData = extend({}, task);
             task = extend(task, response);
+
             task.refresh(oldData);
+
 
             if (isStatusChange) {
 
@@ -295,11 +297,15 @@ class Manager extends UIComponent {
                 });
 
                 if (Statuses.is(Statuses.SET_VISIBLE, task.status)) {
+
                     if (task.element.parentNode === null) {
                         const element = task.element;
                         element.style.display = 'none';
                         this.wrapperTasksElement.append(element);
-                        animateEl(element, this.#taskAnimation(task, 'show'));
+                        animateEl(element, this.#taskAnimation(task, 'show'))
+                            .then(() => this.trigger(Events.taskElementAppend, {bubbles: true}, {
+                                task: task,
+                            }));
                     }
                 }
 
