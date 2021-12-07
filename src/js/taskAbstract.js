@@ -64,6 +64,11 @@ export default class TaskAbstract extends UIComponent {
         remove: null
     };
 
+    /**
+     * @type {Object|null}
+     */
+    result = null;
+
 
     /**
      * @param {number|string} id
@@ -81,6 +86,9 @@ export default class TaskAbstract extends UIComponent {
      * @param {Array} params
      */
     callCallback(type, params = []) {
+        if (this.common) {
+            return;
+        }
         if (typeof this.callbacks[type] === 'function') {
             this.callbacks[type].apply(this, params);
         }
@@ -109,6 +117,12 @@ export default class TaskAbstract extends UIComponent {
         return element;
     }
 
+    /**
+     * @return {Element}
+     */
+    get el() {
+        return this.#element;
+    }
 
     /**
      * Render child instances

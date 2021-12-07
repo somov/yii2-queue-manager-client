@@ -286,7 +286,6 @@ class Manager extends UIComponent {
 
             task.refresh(oldData);
 
-
             if (isStatusChange) {
 
                 task.cssClassSwitch();
@@ -314,6 +313,10 @@ class Manager extends UIComponent {
 
                 if (Statuses.is(Statuses.SET_COMPLETE, task.status)) {
                     this.removeTask(task);
+                    if (false === task.manager.options.common
+                        && task.result && Array.isArray(task.result.tasks)) {
+                        task.manager.addTasks(task.result.tasks);
+                    }
                 }
             }
         }
@@ -418,9 +421,9 @@ class Manager extends UIComponent {
             if (item instanceof TaskAbstract) {
                 return;
             }
-            if (typeof item === 'object' && typeof item.id !== undefined ) {
+            if (typeof item === 'object' && typeof item.id !== undefined) {
                 const id = item.id;
-                delete  item.id;
+                delete item.id;
                 tasks[index] = extend(new TaskClass(id, this), item);
             } else if (Number.parseInt(item) > 0) {
                 tasks[index] = new TaskClass(item, this)
