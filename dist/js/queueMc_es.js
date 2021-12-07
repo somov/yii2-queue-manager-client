@@ -1,6 +1,6 @@
 /*!
  * @license
- * yii2qmc 1.0.2 <https://github.com/somov/yii2-queue-manager-client#readme>
+ * yii2qmc 1.0.3 <https://github.com/somov/yii2-queue-manager-client#readme>
  * Copyright: somov.nn@gmail.com
  * Licensed under MIT
  */
@@ -1374,6 +1374,14 @@ var QueueManager = (function (document, window$1) {
      */
 
     /**
+     * @type {{init: null, hide: null, show: null, refresh: null, render: null, remove: null}}
+     */
+
+    /**
+     * @type {Object|null}
+     */
+
+    /**
      * @param {number|string} id
      * @param {Manager} manager
      */
@@ -1406,9 +1414,37 @@ var QueueManager = (function (document, window$1) {
         value: null
       });
 
+      _defineProperty(this, "callbacks", {
+        init: null,
+        render: null,
+        show: null,
+        refresh: null,
+        hide: null,
+        remove: null
+      });
+
+      _defineProperty(this, "result", null);
+
       this.id = parseInt(id);
 
       _classPrivateFieldSet(this, _manager$1, manager);
+
+      setTimeout(() => this.callCallback('init'), 50);
+    }
+    /**
+     * @param {string} type
+     * @param {Array} params
+     */
+
+
+    callCallback(type, params = []) {
+      if (this.common) {
+        return;
+      }
+
+      if (typeof this.callbacks[type] === 'function') {
+        this.callbacks[type].apply(this, params);
+      }
     }
     /**
      * @private
@@ -1417,9 +1453,17 @@ var QueueManager = (function (document, window$1) {
 
 
     /**
+     * @return {Element}
+     */
+    get el() {
+      return _classPrivateFieldGet(this, _element$4);
+    }
+    /**
      * Render child instances
      * @protected
      */
+
+
     _renderChild(elWrapper) {} // noinspection JSMethodCanBeStatic
 
     /**
@@ -1468,6 +1512,8 @@ var QueueManager = (function (document, window$1) {
       if (elements) {
         this._refreshElements(elements, response);
       }
+
+      this.callCallback('refresh', [response, elements]);
     }
     /**
      *
@@ -1626,6 +1672,7 @@ var QueueManager = (function (document, window$1) {
 
     this._renderChild(elTask);
 
+    this.callCallback('render', [elTask, element]);
     element.append(elTask);
     return element;
   }
@@ -1782,7 +1829,7 @@ var QueueManager = (function (document, window$1) {
 
     get tasksId() {
       return this.tasks.map(task => task.id).filter((value, index, array) => {
-        return array.indexOf(value === index);
+        return array.indexOf(value) === index;
       });
     }
     /**
@@ -1895,7 +1942,7 @@ var QueueManager = (function (document, window$1) {
 
           manager._updateTask(task, item);
 
-          task.initiatorManager = resolver.tasks.find(value => value.id === item.id).manager;
+          task.initiatorManager = resolver.tasks.find(value => value.id === item.id)?.manager;
         }
 
         if (task instanceof TaskAbstract && task.common) {
@@ -1963,6 +2010,7 @@ var QueueManager = (function (document, window$1) {
     destroy: 'qmc:manager:destroy',
     statusChange: 'qmc:manager:statusChange',
     taskRemoved: 'qmc:manager:taskRemoved',
+    taskElementAppend: 'qmc:manager:taskElementAppend',
     taskElementRemoved: 'qmc:manager:taskElementRemoved',
     newTask: 'qmc:manager:newTask',
     fetchStart: 'qmc:resolver:start',
@@ -3847,12 +3895,23 @@ var QueueManager = (function (document, window$1) {
               const element = task.element;
               element.style.display = 'none';
               this.wrapperTasksElement.append(element);
-              animateEl(element, _classPrivateMethodGet(this, _taskAnimation, _taskAnimation2).call(this, task, 'show'));
+              animateEl(element, _classPrivateMethodGet(this, _taskAnimation, _taskAnimation2).call(this, task, 'show')).then(() => {
+                this.trigger(Event.taskElementAppend, {
+                  bubbles: true
+                }, {
+                  task: task
+                });
+                task.callCallback('show');
+              });
             }
           }
 
           if (StatusesList.is(StatusesList.SET_COMPLETE, task.status)) {
             this.removeTask(task);
+
+            if (false === task.manager.options.common && task.result && Array.isArray(task.result.tasks)) {
+              task.manager.addTasks(task.result.tasks);
+            }
           }
         }
       }
@@ -3880,9 +3939,11 @@ var QueueManager = (function (document, window$1) {
           }, {
             task: task
           });
+          task.callCallback('remove');
 
           if (task.element.parentNode instanceof Element) {
             _classPrivateMethodGet(this, _removeEl, _removeEl2).call(this, task.element, _classPrivateMethodGet(this, _taskAnimation, _taskAnimation2).call(this, task)).then(el => {
+              task.callCallback('hide');
               this.trigger(Event.taskElementRemoved, {
                 bubbles: true
               }, {
@@ -4015,8 +4076,10 @@ var QueueManager = (function (document, window$1) {
         return;
       }
 
-      if (typeof item === 'object') {
-        tasks[index] = extend(new TaskClass(null, this), item);
+      if (typeof item === 'object' && typeof item.id !== undefined) {
+        const id = item.id;
+        delete item.id;
+        tasks[index] = extend(new TaskClass(id, this), item);
       } else if (Number.parseInt(item) > 0) {
         tasks[index] = new TaskClass(item, this);
       } else {

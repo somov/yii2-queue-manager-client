@@ -1,6 +1,6 @@
 /*!
  * @license
- * yii2qmc 1.0.2 <https://github.com/somov/yii2-queue-manager-client#readme>
+ * yii2qmc 1.0.3 <https://github.com/somov/yii2-queue-manager-client#readme>
  * Copyright: somov.nn@gmail.com
  * Licensed under MIT
  */
@@ -1468,6 +1468,14 @@ var manager = (function (document, window$1) {
      */
 
     /**
+     * @type {{init: null, hide: null, show: null, refresh: null, render: null, remove: null}}
+     */
+
+    /**
+     * @type {Object|null}
+     */
+
+    /**
      * @param {number|string} id
      * @param {Manager} manager
      */
@@ -1502,19 +1510,52 @@ var manager = (function (document, window$1) {
         value: null
       });
 
+      _defineProperty(_assertThisInitialized(_this), "callbacks", {
+        init: null,
+        render: null,
+        show: null,
+        refresh: null,
+        hide: null,
+        remove: null
+      });
+
+      _defineProperty(_assertThisInitialized(_this), "result", null);
+
       _this.id = parseInt(id);
 
       _classPrivateFieldSet(_assertThisInitialized(_this), _manager$1, manager);
 
+      setTimeout(function () {
+        return _this.callCallback('init');
+      }, 50);
       return _this;
+    }
+    /**
+     * @param {string} type
+     * @param {Array} params
+     */
+
+
+    var _proto = TaskAbstract.prototype;
+
+    _proto.callCallback = function callCallback(type, params) {
+      if (params === void 0) {
+        params = [];
+      }
+
+      if (this.common) {
+        return;
+      }
+
+      if (typeof this.callbacks[type] === 'function') {
+        this.callbacks[type].apply(this, params);
+      }
     }
     /**
      * @private
      * @return {Element}
      */
-
-
-    var _proto = TaskAbstract.prototype;
+    ;
 
     /**
      * Render child instances
@@ -1572,6 +1613,8 @@ var manager = (function (document, window$1) {
       if (elements) {
         this._refreshElements(elements, response);
       }
+
+      this.callCallback('refresh', [response, elements]);
     }
     /**
      *
@@ -1695,6 +1738,15 @@ var manager = (function (document, window$1) {
     };
 
     _createClass(TaskAbstract, [{
+      key: "el",
+      get:
+      /**
+       * @return {Element}
+       */
+      function get() {
+        return _classPrivateFieldGet(this, _element$4);
+      }
+    }, {
       key: "manager",
       get: function get() {
         return _classPrivateFieldGet(this, _manager$1);
@@ -1747,6 +1799,7 @@ var manager = (function (document, window$1) {
 
     this._renderChild(elTask);
 
+    this.callCallback('render', [elTask, element]);
     element.append(elTask);
     return element;
   }
@@ -1994,7 +2047,7 @@ var manager = (function (document, window$1) {
         return this.tasks.map(function (task) {
           return task.id;
         }).filter(function (value, index, array) {
-          return array.indexOf(value === index);
+          return array.indexOf(value) === index;
         });
       }
     }, {
@@ -2054,15 +2107,17 @@ var manager = (function (document, window$1) {
         var task = manager.findTask(item.id);
 
         if (task === null && StatusesList.is(StatusesList.SET_COMPLETE, item.status) === false) {
+          var _resolver$tasks$find;
+
           item.common = true;
           manager.addTasks([item.id], false);
           task = manager.findTask(item.id);
 
           manager._updateTask(task, item);
 
-          task.initiatorManager = resolver.tasks.find(function (value) {
+          task.initiatorManager = (_resolver$tasks$find = resolver.tasks.find(function (value) {
             return value.id === item.id;
-          }).manager;
+          })) == null ? void 0 : _resolver$tasks$find.manager;
         }
 
         if (task instanceof TaskAbstract && task.common) {
@@ -2140,6 +2195,7 @@ var manager = (function (document, window$1) {
     destroy: 'qmc:manager:destroy',
     statusChange: 'qmc:manager:statusChange',
     taskRemoved: 'qmc:manager:taskRemoved',
+    taskElementAppend: 'qmc:manager:taskElementAppend',
     taskElementRemoved: 'qmc:manager:taskElementRemoved',
     newTask: 'qmc:manager:newTask',
     fetchStart: 'qmc:resolver:start',
@@ -4250,6 +4306,8 @@ var manager = (function (document, window$1) {
     ;
 
     _proto._updateTask = function _updateTask(task, response) {
+      var _this3 = this;
+
       if (task.progress !== response.progress || task.status !== response.status || task.text !== response.text || task.title !== response.title) {
         var isStatusChange = task.status !== response.status,
             oldData = extend({}, task);
@@ -4270,12 +4328,24 @@ var manager = (function (document, window$1) {
               var element = task.element;
               element.style.display = 'none';
               this.wrapperTasksElement.append(element);
-              animateEl(element, _classPrivateMethodGet(this, _taskAnimation, _taskAnimation2).call(this, task, 'show'));
+              animateEl(element, _classPrivateMethodGet(this, _taskAnimation, _taskAnimation2).call(this, task, 'show')).then(function () {
+                _this3.trigger(Event.taskElementAppend, {
+                  bubbles: true
+                }, {
+                  task: task
+                });
+
+                task.callCallback('show');
+              });
             }
           }
 
           if (StatusesList.is(StatusesList.SET_COMPLETE, task.status)) {
             this.removeTask(task);
+
+            if (false === task.manager.options.common && task.result && Array.isArray(task.result.tasks)) {
+              task.manager.addTasks(task.result.tasks);
+            }
           }
         }
       }
@@ -4288,7 +4358,7 @@ var manager = (function (document, window$1) {
     ;
 
     _proto.removeTask = function removeTask(task) {
-      var _this3 = this;
+      var _this4 = this;
 
       if (typeof task === 'number') {
         task = this.findTask(task);
@@ -4307,18 +4377,21 @@ var manager = (function (document, window$1) {
           }, {
             task: task
           });
+          task.callCallback('remove');
 
           if (task.element.parentNode instanceof Element) {
             _classPrivateMethodGet(this, _removeEl, _removeEl2).call(this, task.element, _classPrivateMethodGet(this, _taskAnimation, _taskAnimation2).call(this, task)).then(function (el) {
-              _this3.trigger(Event.taskElementRemoved, {
+              task.callCallback('hide');
+
+              _this4.trigger(Event.taskElementRemoved, {
                 bubbles: true
               }, {
                 task: task,
                 element: el
               });
 
-              if (_classPrivateFieldGet(_this3, _tasks).length === 0) {
-                _classPrivateMethodGet(_this3, _toggleEmptyText, _toggleEmptyText2).call(_this3, 'show');
+              if (_classPrivateFieldGet(_this4, _tasks).length === 0) {
+                _classPrivateMethodGet(_this4, _toggleEmptyText, _toggleEmptyText2).call(_this4, 'show');
               }
             });
           }
@@ -4455,7 +4528,7 @@ var manager = (function (document, window$1) {
   }
 
   function _taskFactory2(tasks) {
-    var _this4 = this;
+    var _this5 = this;
 
     var TaskClass = this.options.taskClass;
     tasks.forEach(function (item, index) {
@@ -4463,10 +4536,12 @@ var manager = (function (document, window$1) {
         return;
       }
 
-      if (typeof item === 'object') {
-        tasks[index] = extend(new TaskClass(null, _this4), item);
+      if (typeof item === 'object' && typeof item.id !== undefined) {
+        var id = item.id;
+        delete item.id;
+        tasks[index] = extend(new TaskClass(id, _this5), item);
       } else if (Number.parseInt(item) > 0) {
-        tasks[index] = new TaskClass(item, _this4);
+        tasks[index] = new TaskClass(item, _this5);
       } else {
         console.log('Delete not valid task item', item);
         tasks.splice(index, 1);
