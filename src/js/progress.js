@@ -112,12 +112,12 @@ export default class Progress extends UIComponent {
     setProgress(value) {
 
         const bars = this.#bars,
-            el = this.#el,
-            length = value.length;
+            el = this.#el;
 
-        value = (typeof value === 'number') ? [value] : value;
+        value = (false === Array.isArray(value)) ? [value] : value;
 
         value.forEach((value, index) => {
+            value = parseInt(value);
             if (bars[index] instanceof ProgressBar) {
                 bars[index].progress = value;
             } else {
@@ -127,9 +127,6 @@ export default class Progress extends UIComponent {
                 el.querySelector('.' + Progress.getClassName('progress-items')).append(
                     Dom.createEl('div', {
                         className: Progress.getClassName('progress-item'),
-                        /*style: {
-                            width: (100 / length).toFixed(3) + '%'
-                        }*/
                     }, {}, bars[index].render())
                 );
             }
