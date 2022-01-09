@@ -1,6 +1,6 @@
 /*!
  * @license
- * yii2qmc 1.0.3 <https://github.com/somov/yii2-queue-manager-client#readme>
+ * yii2qmc 1.0.4 <https://github.com/somov/yii2-queue-manager-client#readme>
  * Copyright: somov.nn@gmail.com
  * Licensed under MIT
  */
@@ -2283,10 +2283,11 @@ var QueueManager = (function (document, window$1) {
     setProgress(value) {
       const bars = _classPrivateFieldGet(this, _bars),
             el = _classPrivateFieldGet(this, _el);
-            value.length;
 
-      value = typeof value === 'number' ? [value] : value;
+      value = false === Array.isArray(value) ? [value] : value;
       value.forEach((value, index) => {
+        value = parseInt(value);
+
         if (bars[index] instanceof ProgressBar) {
           bars[index].progress = value;
         } else {
@@ -2295,10 +2296,6 @@ var QueueManager = (function (document, window$1) {
           });
           el.querySelector('.' + Progress.getClassName('progress-items')).append(createEl('div', {
             className: Progress.getClassName('progress-item')
-            /*style: {
-                width: (100 / length).toFixed(3) + '%'
-            }*/
-
           }, {}, bars[index].render()));
         }
       });
